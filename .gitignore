@@ -1,0 +1,10 @@
+archived
+datasets/ml-25m
+models/*
+logs/*
+.idea
+venv
+__pycache__
+best.pth
+*.ipynb
+.ipynb_checkpoints

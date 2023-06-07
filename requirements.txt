@@ -1,0 +1,5 @@
+pandas
+torch
+numpy
+pytorch_lightning
+tensorboard
