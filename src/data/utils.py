@@ -1,6 +1,4 @@
 import numpy as np
-import torch
-import torch.nn.functional as F
 
 
 def mask_array(values: np.ndarray, mask_val: int, p=0.8):

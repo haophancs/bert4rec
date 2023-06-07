@@ -1,15 +1,25 @@
-import torch
 import pytorch_lightning as pl
+import torch
 
 
 class SequentialRecommender(pl.LightningModule):
-    def __init__(self, lr=None, weight_decay=None, optimizer=None, scheduler=None, *args, **kwargs):
+    def __init__(
+            self,
+            seq_length=120,
+            lr=None,
+            weight_decay=None,
+            optimizer=None,
+            scheduler=None,
+            *args,
+            **kwargs
+    ):
         super(SequentialRecommender, self).__init__()
         if lr is None and optimizer is None:
             raise ValueError()
         if lr is not None and optimizer is not None:
             raise ValueError()
         self.lr = lr
+        self.seq_length = seq_length
         self.weight_decay = weight_decay
         self.optimizer = optimizer
         self.scheduler = scheduler
@@ -18,6 +28,9 @@ class SequentialRecommender(pl.LightningModule):
         raise NotImplementedError()
 
     def handle_batch(self, batch):
+        raise NotImplementedError()
+
+    def predict(self, item_ids):
         raise NotImplementedError()
 
     def training_step(self, batch, *args):
@@ -51,3 +64,6 @@ class SequentialRecommender(pl.LightningModule):
             "optimizer": self.optimizer,
             "lr_scheduler": self.scheduler
         }
+
+    def from_pretrained(self, pretrained_path):
+        return self.load_state_dict(torch.load(pretrained_path, map_location=self.device)['state_dict'])

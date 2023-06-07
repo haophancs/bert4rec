@@ -5,8 +5,8 @@ import torch
 from torch.utils.data import DataLoader
 
 from src.data.datasets import InteractionDataset, SequentialItemsDataset
-from src.models import BERT4Rec
 from src.helpers import get_trainer
+from src.models import BERT4Rec
 
 
 def train(
@@ -55,6 +55,7 @@ def train(
         num_workers=num_workers
     )
     model = BERT4Rec(
+        seq_length=seq_length,
         vocab_size=train_dataset.vocab_size,
         mask_token=train_dataset.mask_token,
         pad_token=train_dataset.pad_token,

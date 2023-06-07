@@ -1,6 +1,8 @@
+import numpy as np
 import torch
 import torch.nn as nn
 
+from src.data.utils import pad_array
 from src.metrics import masked_accuracy, masked_cross_entropy
 from src.models.base import SequentialRecommender
 
@@ -29,7 +31,7 @@ class BERT4Rec(SequentialRecommender):
         self.item_embedding = nn.Embedding(vocab_size, embedding_dim=hidden_size)
         self.positional_embedding = nn.Embedding(512, embedding_dim=hidden_size)
 
-        self.encoder_layers = torch.nn.TransformerEncoder(
+        self.encoder_layers = nn.TransformerEncoder(
             nn.TransformerEncoderLayer(
                 d_model=hidden_size, nhead=num_attention_heads, dropout=dropout
             ), num_layers=num_hidden_layers
@@ -64,3 +66,17 @@ class BERT4Rec(SequentialRecommender):
         loss = masked_cross_entropy(predictions=predictions, truths=actual_sequence, mask=mask)
         accuracy = masked_accuracy(predictions=predictions, truths=actual_sequence, mask=mask)
         return loss, accuracy
+
+    def predict(self, item_ids, k=30):
+        masked_sequence = torch.LongTensor(pad_array(
+            np.array(item_ids + [self.mask_token]),
+            size=self.seq_length,
+            pad_val=self.pad_token,
+            mode='left'
+        )).unsqueeze(0)
+        with torch.no_grad():
+            prediction = self(masked_sequence)
+        next_item_ids = prediction[0, -1].detach().cpu().numpy()
+        next_item_ids = np.argsort(next_item_ids).tolist()[::-1][:k]
+        next_item_ids = np.setdiff1d(next_item_ids, item_ids)
+        return next_item_ids
