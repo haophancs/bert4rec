@@ -70,7 +70,7 @@ class BERT4Rec(SequentialRecommender):
     def predict(self, item_ids, k=30):
         masked_sequence = torch.LongTensor(pad_array(
             np.array(item_ids + [self.mask_token]),
-            size=self.seq_length,
+            length=self.seq_length,
             pad_val=self.pad_token,
             mode='left'
         )).unsqueeze(0)

@@ -67,14 +67,14 @@ class SequentialItemsDataset(torch.utils.data.Dataset):
         return self.interaction_data.num_item + 2
 
     @staticmethod
-    def get_sequence(interactions: pd.DataFrame, split: str, seq_size: int = 120, val_seq_size: int = 5):
+    def get_sequence(interactions: pd.DataFrame, split: str, seq_length: int = 120, val_seq_length: int = 5):
         if split == "train":
-            end_pos = random.randint(10, interactions.shape[0] - val_seq_size)
+            end_pos = random.randint(10, interactions.shape[0] - val_seq_length)
         elif split in ["val", "test"]:
             end_pos = interactions.shape[0]
         else:
             raise ValueError
-        start_pos = max(0, end_pos - seq_size)
+        start_pos = max(0, end_pos - seq_length)
         sequence = interactions[start_pos:end_pos]
         return sequence
 
@@ -82,7 +82,7 @@ class SequentialItemsDataset(torch.utils.data.Dataset):
         user_group = self.interaction_data.user_groups[idx]
         interactions = self.interaction_data.user_group_by.get_group(user_group)
         actual_sequence = self.get_sequence(
-            interactions, split=self.split, seq_size=self.seq_length
+            interactions, split=self.split, seq_length=self.seq_length
         )[self.interaction_data.item_col].values
         masked_sequence = actual_sequence.copy()
         if self.split == "train":
@@ -91,10 +91,10 @@ class SequentialItemsDataset(torch.utils.data.Dataset):
             masked_sequence = mask_last_elements_array(masked_sequence, mask_val=self.mask_token)
         pad_mode = "left" if random.random() < 0.5 else "right"
         actual_sequence = pad_array(
-            actual_sequence, size=self.seq_length, pad_val=self.pad_token, mode=pad_mode
+            actual_sequence, length=self.seq_length, pad_val=self.pad_token, mode=pad_mode
         )
         masked_sequence = pad_array(
-            masked_sequence, size=self.seq_length, pad_val=self.pad_token, mode=pad_mode
+            masked_sequence, length=self.seq_length, pad_val=self.pad_token, mode=pad_mode
         )
         masked_sequence = torch.LongTensor(masked_sequence)
         actual_sequence = torch.LongTensor(actual_sequence)
