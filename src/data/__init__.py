@@ -1,2 +1,0 @@
-from interaction import InteractionDataset
-from sequential import SequentialItemsDataset

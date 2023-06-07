@@ -2,8 +2,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from src.data.utils import pad_array
-from src.metrics import masked_accuracy, masked_cross_entropy
+from src.data.sequential import pad_array
+from src.metrics.sequential import masked_accuracy, masked_cross_entropy
 from src.models.sequential.base import SequentialRecommender
 
 

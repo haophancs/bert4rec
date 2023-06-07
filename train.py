@@ -4,7 +4,8 @@ import os
 import torch
 from torch.utils.data import DataLoader
 
-from src.data import InteractionDataset, SequentialItemsDataset
+from src.data.interaction import InteractionDataset
+from src.data.sequential import SequentialItemsDataset
 from src.helpers import get_trainer
 from src.models import BERT4Rec
 

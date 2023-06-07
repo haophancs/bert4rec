@@ -1,5 +1,5 @@
-import pytorch_lightning as pl
 import torch
+import pytorch_lightning as pl
 
 
 class SequentialRecommender(pl.LightningModule):
