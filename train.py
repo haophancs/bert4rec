@@ -91,7 +91,7 @@ if __name__ == "__main__":
     parser.add_argument('--lr', type=float, default=1e-4, help='Learning rate.')
     parser.add_argument('--dropout', type=float, default=0.3, help='Dropout probability.')
     parser.add_argument('--weight_decay', type=float, default=0.00, help='Weight decay for optimizer.')
-    parser.add_argument('--checkpoint_dir', type=str, default='./models', help='Directory to save trained models.')
+    parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints', help='Directory to save trained models.')
     parser.add_argument('--log_dir', type=str, default='./logs', help='Directory to save log files.')
     parser.add_argument('--num_workers', type=int, default=2, help='Dataloader num workers.')
 

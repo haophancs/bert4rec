@@ -4,7 +4,7 @@ import torch.nn as nn
 
 from src.data.utils import pad_array
 from src.metrics import masked_accuracy, masked_cross_entropy
-from src.models.base import SequentialRecommender
+from src.models.sequential.base import SequentialRecommender
 
 
 class BERT4Rec(SequentialRecommender):
