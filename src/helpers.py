@@ -3,7 +3,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 
 
-def get_trainer(epochs, device, log_dir, checkpoint_dir, model_prefix):
+def get_trainer(epochs, device, log_dir, checkpoint_dir, checkpoint_prefix):
     logger = TensorBoardLogger(
         save_dir=log_dir,
     )
@@ -11,7 +11,7 @@ def get_trainer(epochs, device, log_dir, checkpoint_dir, model_prefix):
         monitor="val_loss",
         mode="min",
         dirpath=checkpoint_dir,
-        filename=f"{model_prefix}_best",
+        filename=f"{checkpoint_prefix}_best",
     )
     return pl.Trainer(
         accelerator=device,
@@ -19,3 +19,4 @@ def get_trainer(epochs, device, log_dir, checkpoint_dir, model_prefix):
         logger=logger,
         callbacks=[checkpoint_handler],
     )
+

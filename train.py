@@ -7,11 +7,13 @@ from torch.utils.data import DataLoader
 from src.data.interaction import InteractionDataset
 from src.data.sequential import SequentialItemsDataset
 from src.helpers import get_trainer
-from src.models import BERT4Rec
+from src.models.sequential import BERT4Rec
 
 
 def train(
-        data_path,
+        data_name,
+        data_root,
+        rating_csv_file,
         data_user_col,
         data_item_col,
         data_chrono_col,
@@ -28,11 +30,12 @@ def train(
         log_dir,
         num_workers=10
 ):
-    print('Loading interaction data... ')
+    data_path = os.path.join(data_root, data_name, rating_csv_file)
+    print(f'Loading interaction data from {data_path}')
     interaction_data = InteractionDataset(
-        data_csv_path=data_path,
-        user_col=data_user_col,
-        item_col=data_item_col,
+        df_csv_path=data_path,
+        user_id_col=data_user_col,
+        item_id_col=data_item_col,
         chrono_col=data_chrono_col,
     )
     print(str(interaction_data))
@@ -69,7 +72,7 @@ def train(
         epochs=epochs,
         log_dir=log_dir,
         checkpoint_dir=checkpoint_dir,
-        model_prefix=model.__class__.__name__.lower(),
+        checkpoint_prefix=f"{model.__class__.__name__.lower()}_{data_name}",
         device=device
     )
     trainer.fit(model, train_loader, val_loader)
@@ -77,8 +80,9 @@ def train(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Training parameters for BERT4Rec.')
-    parser.add_argument('--data_path', type=str, default='./datasets/ml-25m/ratings.csv',
-                        help='Path to the data csv file.')
+    parser.add_argument('--data_name', type=str, default='ml-25m')
+    parser.add_argument('--data_root', type=str, default='./datasets')
+    parser.add_argument('--rating_csv_file', type=str, default='ratings.csv')
     parser.add_argument('--data_user_col', type=str, default='userId')
     parser.add_argument('--data_item_col', type=str, default='movieId')
     parser.add_argument('--data_chrono_col', type=str, default='timestamp')
@@ -102,7 +106,9 @@ if __name__ == "__main__":
     os.makedirs(args.log_dir, exist_ok=True)
 
     train(
-        args.data_path,
+        args.data_name,
+        args.data_root,
+        args.rating_csv,
         args.data_user_col,
         args.data_item_col,
         args.data_chrono_col,

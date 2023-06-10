@@ -17,10 +17,6 @@ def masked_cross_entropy(predictions: torch.Tensor, truths: torch.Tensor, mask: 
 
 
 def mrr_at_k(predictions, truths, k):
-    _, predictions = torch.max(predictions, 1)
-    predictions = torch.masked_select(predictions, mask)
-    truths = torch.masked_select(truths, mask)
-
     scores = []
     for pred, truth in zip(predictions, truths):
         for i, p in enumerate(pred[:k]):
@@ -31,10 +27,6 @@ def mrr_at_k(predictions, truths, k):
 
 
 def precision_at_k(predictions, truths, k):
-    _, predictions = torch.max(predictions, 1)
-    predictions = torch.masked_select(predictions, mask)
-    truths = torch.masked_select(truths, mask)
-
     scores = []
     for pred, truth in zip(predictions, truths):
         pred_k = pred[:k]
@@ -48,10 +40,6 @@ def dcg_at_k(r, k):
 
 
 def ndcg_at_k(predictions, truths, k):
-    _, predictions = torch.max(predictions, 1)
-    predictions = torch.masked_select(predictions, mask)
-    truths = torch.masked_select(truths, mask)
-
     scores = []
     for pred, truth in zip(predictions, truths):
         pred_k = [int(p.item() in truth) for p in pred[:k]]
@@ -65,10 +53,6 @@ def ndcg_at_k(predictions, truths, k):
 
 
 def hr_at_k(predictions, truths, k):
-    _, predictions = torch.max(predictions, 1)
-    predictions = torch.masked_select(predictions, mask)
-    truths = torch.masked_select(truths, mask)
-
     scores = []
     for pred, truth in zip(predictions, truths):
         pred_k = pred[:k]

@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import pytorch_lightning as pl
 
@@ -14,10 +15,6 @@ class SequentialRecommender(pl.LightningModule):
             **kwargs
     ):
         super(SequentialRecommender, self).__init__()
-        if lr is None and optimizer is None:
-            raise ValueError()
-        if lr is not None and optimizer is not None:
-            raise ValueError()
         self.lr = lr
         self.seq_length = seq_length
         self.weight_decay = weight_decay
@@ -27,31 +24,38 @@ class SequentialRecommender(pl.LightningModule):
     def forward(self, item_ids, *args):
         raise NotImplementedError()
 
-    def handle_batch(self, batch):
-        raise NotImplementedError()
-
-    def predict(self, item_ids):
+    def handle_batch(self, batch, inference=False):
         raise NotImplementedError()
 
     def training_step(self, batch, *args):
-        loss, accuracy = self.handle_batch(batch)
+        _, loss, accuracy = self.handle_batch(batch)
         self.log("train_loss", loss)
         self.log("train_accuracy", accuracy)
         return loss
 
     def validation_step(self, batch, *args):
-        loss, accuracy = self.handle_batch(batch)
+        _, loss, accuracy = self.handle_batch(batch)
         self.log("val_loss", loss)
         self.log("val_accuracy", accuracy)
         return loss
 
     def test_step(self, batch, *args):
-        loss, accuracy = self.handle_batch(batch)
+        predictions, loss, accuracy = self.handle_batch(batch, inference=False)
         self.log("test_loss", loss)
         self.log("test_accuracy", accuracy)
         return loss
 
+    def predict_step(self, batch, *args, k=10):
+        with torch.no_grad():
+            predictions = self.handle_batch(batch, inference=True)
+        next_item_ids = predictions[-1].detach().cpu().numpy()
+        next_item_ids = np.argsort(next_item_ids).tolist()[::-1][:k]
+        next_item_ids = np.setdiff1d(next_item_ids, batch).tolist()
+        return next_item_ids
+
     def configure_optimizers(self):
+        if self.lr is None:
+            self.lr = 1e-4
         if self.optimizer is None:
             if self.weight_decay is None:
                 self.optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
@@ -64,6 +68,3 @@ class SequentialRecommender(pl.LightningModule):
             "optimizer": self.optimizer,
             "lr_scheduler": self.scheduler
         }
-
-    def from_pretrained(self, pretrained_path):
-        return self.load_state_dict(torch.load(pretrained_path, map_location=self.device)['state_dict'])

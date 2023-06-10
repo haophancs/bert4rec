@@ -37,7 +37,6 @@ class BERT4Rec(SequentialRecommender):
             ), num_layers=num_hidden_layers
         )
         self.linear_layer = nn.Linear(hidden_size, vocab_size)
-        self.dropout = nn.Dropout(p=dropout)
 
     def encode(self, item_ids):
         item_embeddings = self.item_embedding(item_ids)
@@ -55,17 +54,23 @@ class BERT4Rec(SequentialRecommender):
         linear_output = self.linear_layer(hidden_states)
         return linear_output
 
-    def handle_batch(self, batch):
-        masked_sequence, actual_sequence = batch
+    def handle_batch(self, batch, inference=False):
+        if inference:
+            masked_sequence, actual_sequence = batch, None
+        else:
+            masked_sequence, actual_sequence = batch
         predictions = self(masked_sequence)
         predictions = predictions.view(-1, predictions.size(2))
+
+        if inference:
+            return predictions
+
         actual_sequence = actual_sequence.view(-1)
         masked_sequence = masked_sequence.view(-1)
         mask = masked_sequence == self.mask_token
-
         loss = masked_cross_entropy(predictions=predictions, truths=actual_sequence, mask=mask)
         accuracy = masked_accuracy(predictions=predictions, truths=actual_sequence, mask=mask)
-        return loss, accuracy
+        return predictions, loss, accuracy
 
     def predict(self, item_ids, k=30):
         masked_sequence = torch.LongTensor(pad_array(
@@ -78,5 +83,5 @@ class BERT4Rec(SequentialRecommender):
             prediction = self(masked_sequence)
         next_item_ids = prediction[0, -1].detach().cpu().numpy()
         next_item_ids = np.argsort(next_item_ids).tolist()[::-1][:k]
-        next_item_ids = np.setdiff1d(next_item_ids, item_ids)
+        next_item_ids = np.setdiff1d(next_item_ids, item_ids).tolist()
         return next_item_ids
