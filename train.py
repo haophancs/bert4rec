@@ -71,14 +71,19 @@ def train(
         lr=lr,
         weight_decay=weight_decay
     )
+    checkpoint_prefix = f"{model.__class__.__name__.lower()}_{data_name}"
     handler = get_handler(
         epochs=epochs,
         log_dir=log_dir,
         checkpoint_dir=checkpoint_dir,
-        checkpoint_prefix=f"{model.__class__.__name__.lower()}_{data_name}",
+        checkpoint_prefix=checkpoint_prefix,
         device=device
     )
     handler.fit(model, train_loader, val_loader)
+    model.load_from_checkpoint(
+        os.path.join(checkpoint_dir, checkpoint_prefix + "_best.ckpt"),
+        map_location=device
+    )
     handler.test(model, test_loader)
 
 
