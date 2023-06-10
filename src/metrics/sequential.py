@@ -36,7 +36,7 @@ def ndcg_at_k(predictions, truths, k):
 
 
 def precision_at_k(predictions, truths, k):
-    _, top_indices = torch.topk(predictions, k, dim=1)
+    top_indices = torch.argsort(predictions[:, -1], dim=1, descending=True)[:, :k]
     truths = truths.unsqueeze(1)
     hits = torch.sum(top_indices == truths, dim=1).float()
     precision = hits / k

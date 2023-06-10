@@ -10,6 +10,44 @@ from src.handlers import get_handler
 from src.models.sequential import BERT4Rec
 
 
+def test(
+        data_name,
+        data_root,
+        rating_csv_file,
+        data_user_col,
+        data_item_col,
+        data_chrono_col,
+        device,
+        seq_length,
+        batch_size,
+        checkpoint_dir,
+        num_workers=10
+):
+    data_path = os.path.join(data_root, data_name, rating_csv_file)
+    print(f'Loading interaction data from {data_path}')
+    interaction_data = InteractionDataset(
+        df_csv_path=data_path,
+        user_id_col=data_user_col,
+        item_id_col=data_item_col,
+        chrono_col=data_chrono_col,
+    )
+    test_dataset = SequentialItemsDataset(interaction_data, split='test', seq_length=seq_length)
+    test_loader = DataLoader(
+        test_dataset,
+        shuffle=False,
+        batch_size=batch_size,
+        num_workers=num_workers
+    )
+    model = BERT4Rec.load_from_checkpoint(
+        os.path.join(checkpoint_dir, checkpoint_prefix + "_best.ckpt"),
+        vocab_size=test_dataset.vocab_size,
+        mask_token=test_dataset.mask_token,
+        pad_token=test_dataset.pad_token,
+        map_location=device
+    )
+    handler.test(model, test_loader)
+
+
 def train(
         data_name,
         data_root,
@@ -80,7 +118,7 @@ def train(
         device=device
     )
     handler.fit(model, train_loader, val_loader)
-    model.load_from_checkpoint(
+    model = BERT4Rec.load_from_checkpoint(
         os.path.join(checkpoint_dir, checkpoint_prefix + "_best.ckpt"),
         vocab_size=test_dataset.vocab_size,
         mask_token=test_dataset.mask_token,
