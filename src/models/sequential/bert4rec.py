@@ -57,7 +57,6 @@ class BERT4Rec(SequentialRecommender):
     def handle_batch(self, batch, inference=False):
         masked_sequence, actual_sequence = batch if not inference else (batch, None)
         predictions = self(masked_sequence)
-        predictions = predictions.view(-1, predictions.size(2))
 
         if inference:
             return predictions
@@ -65,9 +64,12 @@ class BERT4Rec(SequentialRecommender):
         actual_sequence = actual_sequence.view(-1)
         masked_sequence = masked_sequence.view(-1)
         mask = masked_sequence == self.mask_token
-        loss = masked_cross_entropy(predictions=predictions, truths=actual_sequence, mask=mask)
-        accuracy = masked_accuracy(masked_sequence_predictions=predictions, actual_sequence=actual_sequence, mask=mask)
+        loss = masked_cross_entropy(predictions, truths=actual_sequence, mask=mask)
+        accuracy = masked_accuracy(predictions, actual_sequence=actual_sequence, mask=mask)
         return predictions, loss, accuracy
+
+    def batch_truths(self, batch):
+        return batch[1][batch[0] == self.mask_token]
 
     def predict(self, item_ids, k=30):
         masked_sequence = torch.LongTensor(pad_array(

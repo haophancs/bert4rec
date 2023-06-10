@@ -2,6 +2,8 @@ import numpy as np
 import torch
 import pytorch_lightning as pl
 
+from src.metrics.sequential import evaluate_ranking
+
 
 class SequentialRecommender(pl.LightningModule):
     def __init__(
@@ -27,6 +29,9 @@ class SequentialRecommender(pl.LightningModule):
     def handle_batch(self, batch, inference=False):
         raise NotImplementedError()
 
+    def batch_truths(self, batch):
+        raise NotImplementedError()
+
     def training_step(self, batch, *args):
         _, loss, accuracy = self.handle_batch(batch)
         self.log("train_loss", loss)
@@ -40,15 +45,18 @@ class SequentialRecommender(pl.LightningModule):
         return loss
 
     def test_step(self, batch, *args):
+        truths = self.batch_truths(batch)
         predictions, loss, accuracy = self.handle_batch(batch, inference=False)
         self.log("test_loss", loss)
         self.log("test_accuracy", accuracy)
+        for metric, score in evaluate_ranking(predictions, truths):
+            self.log(f"test_{metric}", score)
         return loss
 
     def predict_step(self, batch, *args, k=10):
         with torch.no_grad():
             predictions = self.handle_batch(batch, inference=True)
-        next_item_ids = predictions[-1].detach().cpu().numpy()
+        next_item_ids = predictions[0, -1].detach().cpu().numpy()
         next_item_ids = np.argsort(next_item_ids).tolist()[::-1][:k]
         next_item_ids = np.setdiff1d(next_item_ids, batch).tolist()
         return next_item_ids
