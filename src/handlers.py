@@ -18,5 +18,6 @@ def get_handler(epochs, device, log_dir, checkpoint_dir, checkpoint_prefix):
         max_epochs=epochs,
         logger=logger,
         callbacks=[checkpoint_handler],
+        log_every_n_steps=1
     )
 

@@ -21,6 +21,7 @@ def test(
         seq_length,
         batch_size,
         checkpoint_dir,
+        log_dir,
         num_workers=10
 ):
     data_path = os.path.join(data_root, data_name, rating_csv_file)
@@ -38,12 +39,21 @@ def test(
         batch_size=batch_size,
         num_workers=num_workers
     )
+
+    checkpoint_prefix = f"bert4rec_{data_name}"
     model = BERT4Rec.load_from_checkpoint(
         os.path.join(checkpoint_dir, checkpoint_prefix + "_best.ckpt"),
         vocab_size=test_dataset.vocab_size,
         mask_token=test_dataset.mask_token,
         pad_token=test_dataset.pad_token,
         map_location=device
+    )
+    handler = get_handler(
+        epochs=0,
+        log_dir=log_dir,
+        checkpoint_dir=checkpoint_dir,
+        checkpoint_prefix=checkpoint_prefix,
+        device=device
     )
     handler.test(model, test_loader)
 
@@ -154,6 +164,23 @@ if __name__ == "__main__":
 
     os.makedirs(args.checkpoint_dir, exist_ok=True)
     os.makedirs(args.log_dir, exist_ok=True)
+
+    if args.epochs == 0:
+        test(
+            args.data_name,
+            args.data_root,
+            args.rating_csv_file,
+            args.data_user_col,
+            args.data_item_col,
+            args.data_chrono_col,
+            args.device,
+            args.seq_length,
+            args.batch_size,
+            args.checkpoint_dir,
+            args.log_dir,
+            args.num_workers
+        )
+        exit(0)
 
     train(
         args.data_name,

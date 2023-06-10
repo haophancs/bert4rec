@@ -34,24 +34,23 @@ class SequentialRecommender(pl.LightningModule):
 
     def training_step(self, batch, *args):
         _, loss, accuracy = self.handle_batch(batch)
-        self.log("train_loss", loss)
-        self.log("train_accuracy", accuracy)
+        self.log("train_loss", loss, logger=True, on_step=True, on_epoch=True)
+        self.log("train_accuracy", accuracy, logger=True, on_step=True, on_epoch=True)
         return loss
 
     def validation_step(self, batch, *args):
         _, loss, accuracy = self.handle_batch(batch)
-        self.log("val_loss", loss)
-        self.log("val_accuracy", accuracy)
+        self.log("val_loss", loss, logger=True, on_epoch=True)
+        self.log("val_accuracy", accuracy, logger=True, on_epoch=True)
         return loss
 
     def test_step(self, batch, *args):
         truths = self.batch_truths(batch)
         predictions, loss, accuracy = self.handle_batch(batch, inference=False)
-        self.log("test_loss", loss)
-        self.log("test_accuracy", accuracy)
+        self.log("test_loss", loss, logger=True, on_epoch=True)
+        self.log("test_accuracy", accuracy, logger=True, on_epoch=True)
         for metric, scores in evaluate_ranking(predictions, truths, k_values=[1, 5, 10]).items():
-            for score in scores:
-                self.log(f"test_{metric}", score)
+            self.log(f"test_{metric}", scores.mean(), logger=True, on_epoch=True)
         return loss
 
     def predict_step(self, batch, *args, k=10):

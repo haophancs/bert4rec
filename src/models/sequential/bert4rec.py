@@ -31,12 +31,12 @@ class BERT4Rec(SequentialRecommender):
         self.item_embedding = nn.Embedding(vocab_size, embedding_dim=hidden_size)
         self.positional_embedding = nn.Embedding(512, embedding_dim=hidden_size)
 
-        self.encoder_layers = nn.TransformerEncoder(
+        self.encoder = nn.TransformerEncoder(
             nn.TransformerEncoderLayer(
                 d_model=hidden_size, nhead=num_attention_heads, dropout=dropout
             ), num_layers=num_hidden_layers
         )
-        self.linear_layer = nn.Linear(hidden_size, vocab_size)
+        self.linear = nn.Linear(hidden_size, vocab_size)
 
     def encode(self, item_ids):
         item_embeddings = self.item_embedding(item_ids)
@@ -46,12 +46,12 @@ class BERT4Rec(SequentialRecommender):
             )
         )
         embeddings = (item_embeddings + positional_embeddings).permute(1, 0, 2)
-        hidden_states = self.encoder_layers(embeddings).permute(1, 0, 2)
+        hidden_states = self.encoder(embeddings).permute(1, 0, 2)
         return hidden_states
 
     def forward(self, item_ids, *args):
         hidden_states = self.encode(item_ids)
-        linear_output = self.linear_layer(hidden_states)
+        linear_output = self.linear(hidden_states)
         return linear_output
 
     def handle_batch(self, batch, inference=False):

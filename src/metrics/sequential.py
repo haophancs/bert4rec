@@ -32,6 +32,7 @@ def ndcg_at_k(predictions, truths, k):
     dcg = 1.0 / torch.log2(positions.float() + 2)
     idcg = 1.0 / torch.log2(torch.tensor(2.0))
     ndcg = dcg / idcg
+    ndcg = ndcg if ndcg.numel() > 0 else torch.zeros(1)
     return ndcg
 
 
@@ -40,6 +41,7 @@ def precision_at_k(predictions, truths, k):
     truths = truths.unsqueeze(1)
     hits = torch.sum(top_indices == truths, dim=1).float()
     precision = hits / k
+    precision = precision if precision.numel() > 0 else torch.zeros(1)
     return precision
 
 
@@ -48,6 +50,7 @@ def mrr_at_k(predictions, truths, k):
     truths = truths.unsqueeze(1)
     positions = torch.where(top_indices == truths)[1]
     reciprocal_ranks = 1.0 / (positions.float() + 1)
+    reciprocal_ranks = reciprocal_ranks if reciprocal_ranks.numel() > 0 else torch.zeros(1)
     return reciprocal_ranks
 
 
