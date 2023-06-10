@@ -55,10 +55,7 @@ class BERT4Rec(SequentialRecommender):
         return linear_output
 
     def handle_batch(self, batch, inference=False):
-        if inference:
-            masked_sequence, actual_sequence = batch, None
-        else:
-            masked_sequence, actual_sequence = batch
+        masked_sequence, actual_sequence = batch if not inference else (batch, None)
         predictions = self(masked_sequence)
         predictions = predictions.view(-1, predictions.size(2))
 
@@ -69,7 +66,7 @@ class BERT4Rec(SequentialRecommender):
         masked_sequence = masked_sequence.view(-1)
         mask = masked_sequence == self.mask_token
         loss = masked_cross_entropy(predictions=predictions, truths=actual_sequence, mask=mask)
-        accuracy = masked_accuracy(predictions=predictions, truths=actual_sequence, mask=mask)
+        accuracy = masked_accuracy(masked_sequence_predictions=predictions, actual_sequence=actual_sequence, mask=mask)
         return predictions, loss, accuracy
 
     def predict(self, item_ids, k=30):

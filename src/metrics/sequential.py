@@ -2,11 +2,11 @@ import torch
 import torch.nn.functional as F
 
 
-def masked_accuracy(predictions: torch.Tensor, truths: torch.Tensor, mask: torch.Tensor):
-    _, predictions = torch.max(predictions, 1)
-    truths = torch.masked_select(truths, mask)
-    predictions = torch.masked_select(predictions, mask)
-    accuracy = (truths == predictions).double().mean()
+def masked_accuracy(masked_sequence_predictions: torch.Tensor, actual_sequence: torch.Tensor, mask: torch.Tensor):
+    _, masked_sequence_predictions = torch.max(masked_sequence_predictions, 1)
+    actual_sequence = torch.masked_select(actual_sequence, mask)
+    masked_sequence_predictions = torch.masked_select(masked_sequence_predictions, mask)
+    accuracy = (actual_sequence == masked_sequence_predictions).double().mean()
     return accuracy
 
 
@@ -16,46 +16,34 @@ def masked_cross_entropy(predictions: torch.Tensor, truths: torch.Tensor, mask: 
     return masked_loss.sum() / (mask.sum() + 1e-8)
 
 
-def mrr_at_k(predictions, truths, k):
-    scores = []
-    for pred, truth in zip(predictions, truths):
-        for i, p in enumerate(pred[:k]):
-            if p in truth:
-                scores.append(1 / (i + 1))
-                break
-    return torch.mean(torch.tensor(scores)) if scores else 0
-
-
-def precision_at_k(predictions, truths, k):
-    scores = []
-    for pred, truth in zip(predictions, truths):
-        pred_k = pred[:k]
-        scores.append(len(set(pred_k.tolist()) & set(truth.tolist())) / len(pred_k))
-    return torch.mean(torch.tensor(scores))
-
-
-def dcg_at_k(r, k):
-    r = r[:k]
-    return torch.sum((2 ** r / torch.log2(torch.tensor(list(range(2, len(r) + 2, 1)), dtype=torch.float))))
+def hr_at_k(predictions, truths, k):
+    top_indices = torch.argsort(predictions[:, -1], dim=1, descending=True)[:, :k]
+    true_items = truths.unsqueeze(1)
+    hits = torch.any(top_indices == true_items, dim=1).float()
+    return hits
 
 
 def ndcg_at_k(predictions, truths, k):
-    scores = []
-    for pred, truth in zip(predictions, truths):
-        pred_k = [int(p.item() in truth) for p in pred[:k]]
-        truth_k = [1] * len(pred_k)
-        idcg = masked_dcg_at_k(torch.tensor(truth_k, dtype=torch.float), k)
-        if idcg == 0:
-            scores.append(0.)
-        else:
-            scores.append(masked_dcg_at_k(torch.tensor(pred_k, dtype=torch.float), k) / idcg)
-    return torch.mean(torch.tensor(scores))
+    top_indices = torch.argsort(predictions[:, -1], dim=1, descending=True)[:, :k]
+    truths = truths.unsqueeze(1)
+    positions = torch.where(top_indices == truths)[1]
+    dcg = 1.0 / torch.log2(positions.float() + 2)
+    idcg = 1.0 / torch.log2(torch.tensor(2.0))
+    ndcg = dcg / idcg
+    return ndcg
 
 
-def hr_at_k(predictions, truths, k):
-    scores = []
-    for pred, truth in zip(predictions, truths):
-        pred_k = pred[:k]
-        hit = len(set(pred_k.tolist()) & set(truth.tolist())) > 0
-        scores.append(int(hit))
-    return torch.mean(torch.tensor(scores, dtype=torch.float))
+def precision_at_k(predictions, truths, k):
+    _, top_indices = torch.topk(predictions, k, dim=1)
+    truths = truths.unsqueeze(1)
+    hits = torch.sum(top_indices == truths, dim=1).float()
+    precision = hits / k
+    return precision
+
+
+def mrr_at_k(predictions, truths, k):
+    top_indices = torch.argsort(predictions[:, -1], dim=1, descending=True)[:, :k]
+    truths = truths.unsqueeze(1)
+    positions = torch.where(top_indices == truths)[1]
+    reciprocal_ranks = 1.0 / (positions.float() + 1)
+    return reciprocal_ranks

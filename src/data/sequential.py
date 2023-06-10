@@ -48,42 +48,29 @@ class SequentialItemsDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         user_group = self.interaction_data.user_groups[idx]
         interactions = self.interaction_data.user_group_by.get_group(user_group)
-        actual_sequence = self.get_sequence(
+        current_sequence = self.get_sequence(
             interactions, split=self.split, seq_length=self.seq_length
         )[self.interaction_data.item_col].values
-        masked_sequence = actual_sequence.copy()
+        masked_sequence = current_sequence.copy()
 
         if self.split == 'infer':
-            masked_sequence = pad_array(
-                mask_last_elements_array(
-                    pad_array(
-                        masked_sequence,
-                        length=masked_sequence.shape[0] + 1,
-                        pad_val=self.pad_token, mode='right'),
-                    mask_val=1,
-                    mask_length=1,
-                    p=1
-                ),
-                length=self.seq_length,
-                pad_val=self.pad_token,
-                mode='left'
-            )
+            masked_sequence = np.append(masked_sequence, 1)
+            masked_sequence = pad_array(masked_sequence, self.seq_length, pad_val=self.pad_token, mode='left')
             return torch.LongTensor(masked_sequence)
+
+        if self.split == "train":
+            masked_sequence = mask_array(masked_sequence, self.mask_token, p=self.mask_p)
+        elif self.split == "val":
+            masked_sequence = mask_last_elements_array(masked_sequence, self.mask_token, mask_length=5)
         else:
-            if self.split == "train":
-                masked_sequence = mask_array(masked_sequence, mask_val=self.mask_token, p=self.mask_p)
-            else:
-                masked_sequence = mask_last_elements_array(masked_sequence, mask_val=self.mask_token)
-            pad_mode = "left" if self.split == 'infer' or random.random() < 0.5 else "right"
-            actual_sequence = pad_array(
-                actual_sequence, length=self.seq_length, pad_val=self.pad_token, mode=pad_mode
-            )
-            masked_sequence = pad_array(
-                masked_sequence, length=self.seq_length, pad_val=self.pad_token, mode=pad_mode
-            )
-            masked_sequence = torch.LongTensor(masked_sequence)
-            actual_sequence = torch.LongTensor(actual_sequence)
-            return masked_sequence, actual_sequence
+            masked_sequence = mask_last_elements_array(masked_sequence, self.mask_token, mask_length=1, p=1)
+
+        pad_mode = "left" if random.random() < 0.5 else "right"
+        current_sequence = pad_array(current_sequence, self.seq_length, self.pad_token, pad_mode)
+        masked_sequence = pad_array(masked_sequence, self.seq_length, self.pad_token, pad_mode)
+        masked_sequence = torch.LongTensor(masked_sequence)
+        current_sequence = torch.LongTensor(current_sequence)
+        return masked_sequence, current_sequence
 
 
 def mask_array(values: np.ndarray, mask_val: int, p=0.2):
