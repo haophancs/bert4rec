@@ -49,8 +49,9 @@ class SequentialRecommender(pl.LightningModule):
         predictions, loss, accuracy = self.handle_batch(batch, inference=False)
         self.log("test_loss", loss)
         self.log("test_accuracy", accuracy)
-        for metric, score in evaluate_ranking(predictions, truths):
-            self.log(f"test_{metric}", score)
+        for metric, scores in evaluate_ranking(predictions, truths, k_values=[1, 5, 10]):
+            for score in scores:
+                self.log(f"test_{metric}", score)
         return loss
 
     def predict_step(self, batch, *args, k=10):

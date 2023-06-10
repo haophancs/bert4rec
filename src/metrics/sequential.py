@@ -55,14 +55,14 @@ def evaluate_ranking(predictions, truths, k_values):
     evaluation = {}
 
     for k in k_values:
-        hr_score = hr_at_k(predictions, truths, k)
-        ndcg_score = ndcg_at_k(predictions, truths, k)
-        mrr_score = mrr_at_k(predictions, truths, k)
-        prec_score = precision_at_k(predictions, truths, k)
+        hr_scores = hr_at_k(predictions, truths, k)
+        ndcg_scores = ndcg_at_k(predictions, truths, k)
+        mrr_scores = mrr_at_k(predictions, truths, k)
+        prec_scores = precision_at_k(predictions, truths, k)
 
-        evaluation[f'HR@{k}'] = hr_score.mean()
-        evaluation[f'NDCG@{k}'] = ndcg_score.mean()
-        evaluation[f'MRR@{k}'] = mrr_score.mean()
-        evaluation[f'Prec@{k}'] = prec_score.mean()
+        evaluation[f'HR@{k}'] = hr_scores
+        evaluation[f'NDCG@{k}'] = ndcg_scores
+        evaluation[f'MRR@{k}'] = mrr_scores
+        evaluation[f'Prec@{k}'] = prec_scores
 
     return evaluation
