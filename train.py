@@ -41,9 +41,8 @@ def train(
     print(str(interaction_data))
 
     train_dataset = SequentialItemsDataset(interaction_data, split='train', seq_length=seq_length, mask_p=mask_p)
-    val_dataset = SequentialItemsDataset(
-        interaction_data=interaction_data, split='val', seq_length=seq_length
-    )
+    val_dataset = SequentialItemsDataset(interaction_data, split='val', seq_length=seq_length)
+    test_dataset = SequentialItemsDataset(interaction_data, split='test', seq_length=seq_length)
     train_loader = DataLoader(
         train_dataset,
         shuffle=True,
@@ -52,6 +51,12 @@ def train(
     )
     val_loader = DataLoader(
         val_dataset,
+        shuffle=False,
+        batch_size=batch_size,
+        num_workers=num_workers
+    )
+    test_loader = DataLoader(
+        test_dataset,
         shuffle=False,
         batch_size=batch_size,
         num_workers=num_workers
