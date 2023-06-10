@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 
 from src.data.interaction import InteractionDataset
 from src.data.sequential import SequentialItemsDataset
-from src.helpers import get_trainer
+from src.handlers import get_handler
 from src.models.sequential import BERT4Rec
 
 
@@ -40,9 +40,7 @@ def train(
     )
     print(str(interaction_data))
 
-    train_dataset = SequentialItemsDataset(
-        interaction_data=interaction_data, split='train', seq_length=seq_length, mask_p=mask_p
-    )
+    train_dataset = SequentialItemsDataset(interaction_data, split='train', seq_length=seq_length, mask_p=mask_p)
     val_dataset = SequentialItemsDataset(
         interaction_data=interaction_data, split='val', seq_length=seq_length
     )
@@ -68,14 +66,15 @@ def train(
         lr=lr,
         weight_decay=weight_decay
     )
-    trainer = get_trainer(
+    handler = get_handler(
         epochs=epochs,
         log_dir=log_dir,
         checkpoint_dir=checkpoint_dir,
         checkpoint_prefix=f"{model.__class__.__name__.lower()}_{data_name}",
         device=device
     )
-    trainer.fit(model, train_loader, val_loader)
+    handler.fit(model, train_loader, val_loader)
+    handler.test(model, test_loader)
 
 
 if __name__ == "__main__":

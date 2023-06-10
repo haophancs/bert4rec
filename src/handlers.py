@@ -3,7 +3,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 
 
-def get_trainer(epochs, device, log_dir, checkpoint_dir, checkpoint_prefix):
+def get_handler(epochs, device, log_dir, checkpoint_dir, checkpoint_prefix):
     logger = TensorBoardLogger(
         save_dir=log_dir,
     )
