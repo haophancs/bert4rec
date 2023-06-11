@@ -36,9 +36,9 @@ def test(
     checkpoint_prefix = f"bert4rec_{data_name}"
     model = BERT4Rec.load_from_checkpoint(
         os.path.join(checkpoint_dir, checkpoint_prefix + "_best.ckpt"),
-        vocab_size=test_dataset.vocab_size,
-        mask_token=test_dataset.mask_token,
-        pad_token=test_dataset.pad_token,
+        vocab_size=test_loader.dataset.vocab_size,
+        mask_token=test_loader.dataset.mask_token,
+        pad_token=test_loader.dataset.pad_token,
         map_location=device
     )
     handler = get_handler(
@@ -84,9 +84,9 @@ def train(
     )
     model = BERT4Rec(
         seq_length=seq_length,
-        vocab_size=train_dataset.vocab_size,
-        mask_token=train_dataset.mask_token,
-        pad_token=train_dataset.pad_token,
+        vocab_size=train_loader.dataset.vocab_size,
+        mask_token=train_loader.dataset.mask_token,
+        pad_token=train_loader.dataset.pad_token,
         hidden_size=hidden_size,
         dropout=dropout,
         lr=lr,
