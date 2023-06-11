@@ -1,8 +1,8 @@
 import numpy as np
-import torch
 import pytorch_lightning as pl
+import torch
 
-from recsys.metrics.sequential import evaluate_ranking
+from src.recsys.metrics.sequential import evaluate_ranking
 
 
 class SequentialRecommender(pl.LightningModule):

@@ -2,9 +2,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from recsys.data.sequential import pad_array
-from recsys.metrics.sequential import masked_accuracy, masked_cross_entropy
-from recsys.models.sequential.base import SequentialRecommender
+from src.recsys.datasets.sequential import pad_array
+from src.recsys.metrics.sequential import masked_accuracy, masked_cross_entropy
+from src.recsys.models.sequential.base import SequentialRecommender
 
 
 class BERT4Rec(SequentialRecommender):

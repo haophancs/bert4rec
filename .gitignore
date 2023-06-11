@@ -1,5 +1,4 @@
-datasets/
-checkpoints/
+resources/
 logs/
 .idea/
 venv/

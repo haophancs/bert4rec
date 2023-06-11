@@ -2,18 +2,15 @@ import argparse
 import os
 
 import torch
-from torch.utils.data import DataLoader
 
-from recsys.data.interaction import InteractionDataset
-from recsys.data.sequential import SequentialItemsDataset
-from handlers import get_handler
-from recsys.models.sequential import BERT4Rec
+from src.recsys.datasets.interaction import InteractionDataset
+from src.recsys.helpers import get_handler, get_dataloaders
+from src.recsys.models.sequential import BERT4Rec
 
 
 def test(
         data_name,
         data_root,
-        rating_csv_file,
         data_user_col,
         data_item_col,
         data_chrono_col,
@@ -24,20 +21,16 @@ def test(
         log_dir,
         num_workers=10
 ):
-    data_path = os.path.join(data_root, data_name, rating_csv_file)
-    print(f'Loading interaction data from {data_path}')
-    interaction_data = InteractionDataset(
-        df_csv_path=data_path,
-        user_id_col=data_user_col,
-        item_id_col=data_item_col,
-        chrono_col=data_chrono_col,
-    )
-    test_dataset = SequentialItemsDataset(interaction_data, split='test', seq_length=seq_length)
-    test_loader = DataLoader(
-        test_dataset,
-        shuffle=False,
-        batch_size=batch_size,
-        num_workers=num_workers
+    test_loader = get_dataloaders(
+        ['test'],
+        data_name,
+        data_root,
+        data_user_col,
+        data_item_col,
+        data_chrono_col,
+        seq_length,
+        batch_size,
+        num_workers
     )
 
     checkpoint_prefix = f"bert4rec_{data_name}"
@@ -61,7 +54,6 @@ def test(
 def train(
         data_name,
         data_root,
-        rating_csv_file,
         data_user_col,
         data_item_col,
         data_chrono_col,
@@ -78,36 +70,17 @@ def train(
         log_dir,
         num_workers=10
 ):
-    data_path = os.path.join(data_root, data_name, rating_csv_file)
-    print(f'Loading interaction data from {data_path}')
-    interaction_data = InteractionDataset(
-        df_csv_path=data_path,
-        user_id_col=data_user_col,
-        item_id_col=data_item_col,
-        chrono_col=data_chrono_col,
-    )
-    print(str(interaction_data))
-
-    train_dataset = SequentialItemsDataset(interaction_data, split='train', seq_length=seq_length, mask_p=mask_p)
-    val_dataset = SequentialItemsDataset(interaction_data, split='val', seq_length=seq_length)
-    test_dataset = SequentialItemsDataset(interaction_data, split='test', seq_length=seq_length)
-    train_loader = DataLoader(
-        train_dataset,
-        shuffle=True,
-        batch_size=batch_size,
-        num_workers=num_workers
-    )
-    val_loader = DataLoader(
-        val_dataset,
-        shuffle=False,
-        batch_size=batch_size,
-        num_workers=num_workers
-    )
-    test_loader = DataLoader(
-        test_dataset,
-        shuffle=False,
-        batch_size=batch_size,
-        num_workers=num_workers
+    train_loader, val_loader, test_loader = get_dataloaders(
+        ['train', 'val', 'test'],
+        data_name,
+        data_root,
+        data_user_col,
+        data_item_col,
+        data_chrono_col,
+        seq_length,
+        batch_size,
+        num_workers,
+        mask_p
     )
     model = BERT4Rec(
         seq_length=seq_length,
@@ -141,8 +114,7 @@ def train(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Training parameters for BERT4Rec.')
     parser.add_argument('--data_name', type=str, default='ml-25m')
-    parser.add_argument('--data_root', type=str, default='./datasets')
-    parser.add_argument('--rating_csv_file', type=str, default='ratings.csv')
+    parser.add_argument('--data_root', type=str, default='./resources/db/')
     parser.add_argument('--data_user_col', type=str, default='userId')
     parser.add_argument('--data_item_col', type=str, default='movieId')
     parser.add_argument('--data_chrono_col', type=str, default='timestamp')
@@ -150,13 +122,15 @@ if __name__ == "__main__":
                         help='Device to use for training.')
     parser.add_argument('--seq_length', type=int, default=120, help='Sequence length for training.')
     parser.add_argument('--mask_p', type=float, default=0.2, help='Probability for masking.')
+    parser.add_argument('--pretrained', type=str, default=None, help='Path to the pretrained checkpoint')
     parser.add_argument('--hidden_size', type=int, default=128, help='Hidden length for BERT4Rec.')
     parser.add_argument('--batch_size', type=int, default=32, help='Batch length for training.')
     parser.add_argument('--epochs', type=int, default=200, help='Number of epochs for training.')
     parser.add_argument('--lr', type=float, default=1e-4, help='Learning rate.')
     parser.add_argument('--dropout', type=float, default=0.3, help='Dropout probability.')
     parser.add_argument('--weight_decay', type=float, default=0.00, help='Weight decay for optimizer.')
-    parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints', help='Directory to save trained models.')
+    parser.add_argument('--checkpoint_dir', type=str, default='./resources/checkpoints',
+                        help='Directory to save trained models.')
     parser.add_argument('--log_dir', type=str, default='./logs', help='Directory to save log files.')
     parser.add_argument('--num_workers', type=int, default=2, help='Dataloader num workers.')
 
@@ -169,7 +143,6 @@ if __name__ == "__main__":
         test(
             args.data_name,
             args.data_root,
-            args.rating_csv_file,
             args.data_user_col,
             args.data_item_col,
             args.data_chrono_col,
@@ -185,7 +158,6 @@ if __name__ == "__main__":
     train(
         args.data_name,
         args.data_root,
-        args.rating_csv_file,
         args.data_user_col,
         args.data_item_col,
         args.data_chrono_col,

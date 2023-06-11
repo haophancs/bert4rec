@@ -1,11 +1,11 @@
 import random
 from copy import deepcopy
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import torch
 
-from recsys.data.interaction import InteractionDataset
+from src.recsys.datasets.interaction import InteractionDataset
 
 
 class SequentialItemsDataset(torch.utils.data.Dataset):
