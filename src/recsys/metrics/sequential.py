@@ -21,4 +21,4 @@ def masked_cross_entropy(masked_sequence_predictions: torch.Tensor, truths: torc
 def hr_at_k(predictions, truths, k_values):
     top_indices = torch.argsort(predictions[:, -1], dim=1, descending=True)
     ranks = (top_indices == truths()).long().argmax(dim=1)
-    return {f'HR@{k}': (ranks < k).sum() for k in k_values}
+    return {f'HR@{k}': (ranks < k).sum().item() for k in k_values}
