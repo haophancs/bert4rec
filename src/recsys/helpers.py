@@ -47,8 +47,6 @@ def get_dataloaders(
         splits = [splits]
 
     db_repo = DBRepo(os.path.join(data_root, f"{data_name}.db"))
-    user_ids = np.array(db_repo.get_users([data_user_col])).squeeze()
-    item_ids = np.array(db_repo.get_movies([data_item_col])).squeeze()
     df = pd.DataFrame(
         db_repo.get_interactions([data_user_col, data_item_col, chrono_col]),
         columns=[data_user_col, data_item_col, chrono_col]
