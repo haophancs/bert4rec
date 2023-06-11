@@ -50,10 +50,10 @@ def read_ml_100k(data_root):
 
 
 def read_ml_1m(data_root):
-    dataset_name = "ml-1m"
+    dataset_name = "ml-100k"
     dataset_dir = os.path.join(data_root, dataset_name)
     if not os.path.exists(dataset_dir):
-        download_and_extract(dataset_name, dataset_dir)
+        download_and_extract(dataset_name, data_root)
 
     ratings_file = os.path.join(dataset_dir, "ratings.dat")
     users_file = os.path.join(dataset_dir, "users.dat")
@@ -75,10 +75,10 @@ def read_ml_1m(data_root):
 
 
 def read_ml_10m(data_root):
-    dataset_name = "ml-10m"
+    dataset_name = "ml-100k"
     dataset_dir = os.path.join(data_root, dataset_name)
     if not os.path.exists(dataset_dir):
-        download_and_extract(dataset_name, dataset_dir)
+        download_and_extract(dataset_name, data_root)
 
     ratings_file = os.path.join(dataset_dir, "ratings.dat")
     movies_file = os.path.join(dataset_dir, "movies.dat")
@@ -99,7 +99,7 @@ def read_ml_10m(data_root):
 
 
 def read_ml_20m(data_root):
-    dataset_name = "ml-20m"
+    dataset_name = "ml-100k"
     dataset_dir = os.path.join(data_root, dataset_name)
     if not os.path.exists(dataset_dir):
         download_and_extract(dataset_name, data_root)
@@ -123,10 +123,10 @@ def read_ml_20m(data_root):
 
 
 def read_ml_25m(data_root):
-    dataset_name = "ml-25m"
+    dataset_name = "ml-100k"
     dataset_dir = os.path.join(data_root, dataset_name)
     if not os.path.exists(dataset_dir):
-        download_and_extract(dataset_name, dataset_dir)
+        download_and_extract(dataset_name, data_root)
 
     ratings_file = os.path.join(dataset_dir, "ratings.csv")
     movies_file = os.path.join(dataset_dir, "movies.csv")
@@ -149,7 +149,7 @@ def read_ml_25m(data_root):
 def download_and_extract(dataset_name, data_root):
     print(f"Downloading and extracting {dataset_name} dataset...")
     download_url = f"http://files.grouplens.org/datasets/movielens/{dataset_name}.zip"
-    os.system(f"wget {download_url}")
+    urllib.request.urlretrieve(download_url, f"{dataset_name}.zip")
     with zipfile.ZipFile(f"{dataset_name}.zip", "r") as zip_ref:
         zip_ref.extractall(data_root)
     os.remove(f"{dataset_name}.zip")

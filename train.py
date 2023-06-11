@@ -4,7 +4,6 @@ import os
 import torch
 from dotenv import load_dotenv
 
-from src.recsys.datasets.interaction import InteractionDataset
 from src.recsys.helpers import get_handler, get_dataloaders
 from src.recsys.models.sequential import BERT4Rec
 
