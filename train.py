@@ -103,9 +103,9 @@ def train(
     handler.fit(model, train_loader, val_loader)
     model = BERT4Rec.load_from_checkpoint(
         os.path.join(checkpoint_dir, checkpoint_prefix + "_best.ckpt"),
-        vocab_size=test_dataset.vocab_size,
-        mask_token=test_dataset.mask_token,
-        pad_token=test_dataset.pad_token,
+        vocab_size=test_loader.dataset.vocab_size,
+        mask_token=test_loader.dataset.mask_token,
+        pad_token=test_loader.dataset.pad_token,
         map_location=device
     )
     handler.test(model, test_loader)
