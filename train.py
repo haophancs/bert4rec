@@ -22,7 +22,7 @@ def test(
         num_workers=10
 ):
     test_loader = get_dataloaders(
-        ['test'],
+        'test',
         data_name,
         data_root,
         data_user_col,
