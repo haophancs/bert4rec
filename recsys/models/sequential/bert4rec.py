@@ -2,9 +2,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from src.data.sequential import pad_array
-from src.metrics.sequential import masked_accuracy, masked_cross_entropy
-from src.models.sequential.base import SequentialRecommender
+from recsys.data.sequential import pad_array
+from recsys.metrics.sequential import masked_accuracy, masked_cross_entropy
+from recsys.models.sequential.base import SequentialRecommender
 
 
 class BERT4Rec(SequentialRecommender):
@@ -82,5 +82,5 @@ class BERT4Rec(SequentialRecommender):
             prediction = self(masked_sequence)
         next_item_ids = prediction[0, -1].detach().cpu().numpy()
         next_item_ids = np.argsort(next_item_ids).tolist()[::-1][:k]
-        next_item_ids = np.setdiff1d(next_item_ids, item_ids).tolist()
+        next_item_ids = np.setdiff1d(next_item_ids, item_ids)
         return next_item_ids

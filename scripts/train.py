@@ -4,10 +4,10 @@ import os
 import torch
 from torch.utils.data import DataLoader
 
-from src.data.interaction import InteractionDataset
-from src.data.sequential import SequentialItemsDataset
-from src.handlers import get_handler
-from src.models.sequential import BERT4Rec
+from recsys.data.interaction import InteractionDataset
+from recsys.data.sequential import SequentialItemsDataset
+from handlers import get_handler
+from recsys.models.sequential import BERT4Rec
 
 
 def test(

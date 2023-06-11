@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import torch
 
-from src.data.interaction import InteractionDataset
+from recsys.data.interaction import InteractionDataset
 
 
 class SequentialItemsDataset(torch.utils.data.Dataset):
