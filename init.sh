@@ -1,6 +1,6 @@
 mkdir -p resources/datasets resources/checkpoints resources/checkpoints resources/db logs
 pip3 install -r requirements.txt
-python dump_data.py
+python3 dump_data.py
 wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
 tar -xvzf ./ngrok-v3-stable-linux-amd64.tgz && rm -rf ngrok-v3-stable-linux-amd64.tgz
 ./ngrok config add-authtoken 1v1HNV25PowMDNvS3rLi7wHcsc6_21L6shBzckabrHgScxeGA
