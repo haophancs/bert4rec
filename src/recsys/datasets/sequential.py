@@ -61,7 +61,7 @@ class SequentialItemsDataset(torch.utils.data.Dataset):
         if self.split == "train":
             masked_sequence = mask_array(masked_sequence, self.mask_token, p=self.mask_p)
         elif self.split == "val":
-            masked_sequence = mask_last_elements_array(masked_sequence, self.mask_token, mask_length=5)
+            masked_sequence = mask_last_elements_array(masked_sequence, self.mask_token, mask_length=2, p=1)[:-1]
         else:
             masked_sequence = mask_last_elements_array(masked_sequence, self.mask_token, mask_length=1, p=1)
 
