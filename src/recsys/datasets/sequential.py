@@ -30,26 +30,26 @@ class SequentialItemsDataset(torch.utils.data.Dataset):
 
     @staticmethod
     def get_sequence(
-            interactions: pd.DataFrame,
+            user_interacted: pd.DataFrame,
             split: str,
             seq_length: int = 120,
             val_seq_length: int = 5,
     ):
         if split == "train":
-            end_pos = random.randint(10, interactions.shape[0] - val_seq_length)
+            end_pos = random.randint(10, user_interacted.shape[0] - val_seq_length)
         elif split in ["val", "test", "infer"]:
-            end_pos = interactions.shape[0]
+            end_pos = user_interacted.shape[0]
         else:
             raise ValueError
         start_pos = max(0, end_pos - seq_length)
-        sequence = interactions[start_pos:end_pos]
+        sequence = user_interacted[start_pos:end_pos]
         return sequence
 
     def __getitem__(self, idx):
         user_group = self.interaction_data.user_groups[idx]
-        interactions = self.interaction_data.user_group_by.get_group(user_group)
+        user_interacted = self.interaction_data.user_group_by.get_group(user_group)
         current_sequence = self.get_sequence(
-            interactions, split=self.split, seq_length=self.seq_length
+            user_interacted, split=self.split, seq_length=self.seq_length
         )[self.interaction_data.item_col].values
         masked_sequence = current_sequence.copy()
 
