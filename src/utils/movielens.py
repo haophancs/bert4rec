@@ -50,7 +50,7 @@ def read_ml_100k(data_root):
 
 
 def read_ml_1m(data_root):
-    dataset_name = "ml-100k"
+    dataset_name = "ml-1m"
     dataset_dir = os.path.join(data_root, dataset_name)
     if not os.path.exists(dataset_dir):
         download_and_extract(dataset_name, data_root)
@@ -75,7 +75,7 @@ def read_ml_1m(data_root):
 
 
 def read_ml_10m(data_root):
-    dataset_name = "ml-100k"
+    dataset_name = "ml-10m"
     dataset_dir = os.path.join(data_root, dataset_name)
     if not os.path.exists(dataset_dir):
         download_and_extract(dataset_name, data_root)
@@ -99,7 +99,7 @@ def read_ml_10m(data_root):
 
 
 def read_ml_20m(data_root):
-    dataset_name = "ml-100k"
+    dataset_name = "ml-20m"
     dataset_dir = os.path.join(data_root, dataset_name)
     if not os.path.exists(dataset_dir):
         download_and_extract(dataset_name, data_root)
@@ -123,7 +123,7 @@ def read_ml_20m(data_root):
 
 
 def read_ml_25m(data_root):
-    dataset_name = "ml-100k"
+    dataset_name = "ml-25m"
     dataset_dir = os.path.join(data_root, dataset_name)
     if not os.path.exists(dataset_dir):
         download_and_extract(dataset_name, data_root)
