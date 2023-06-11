@@ -11,7 +11,7 @@ class DatabaseRepository:
     def create_tables(self):
         cursor = self.conn.cursor()
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS user_interacted (
+            CREATE TABLE IF NOT EXISTS interactions (
                 interactionId INTEGER PRIMARY KEY AUTOINCREMENT,
                 userId INTEGER,
                 movieId INTEGER,
@@ -46,7 +46,7 @@ class DatabaseRepository:
         timestamp = datetime.utcnow().isoformat()
         cursor = self.conn.cursor()
         cursor.execute(
-            "INSERT INTO user_interacted (userId, movieId, interaction, timestamp) VALUES (?, ?, ?, ?)",
+            "INSERT INTO interactions (userId, movieId, interaction, timestamp) VALUES (?, ?, ?, ?)",
             (userId, movieId, interaction, timestamp)
         )
         self.conn.commit()
@@ -71,7 +71,7 @@ class DatabaseRepository:
         if isinstance(cols, List):
             cols = ', '.join(cols)
         cursor = self.conn.cursor()
-        cursor.execute(f"SELECT {cols} FROM user_interacted")
+        cursor.execute(f"SELECT {cols} FROM interactions")
         rows = cursor.fetchall()
         return rows
 
@@ -94,7 +94,7 @@ class DatabaseRepository:
     def update_interaction(self, interactionId, newinteraction):
         cursor = self.conn.cursor()
         cursor.execute(
-            "UPDATE user_interacted SET interaction = ? WHERE interactionId = ?",
+            "UPDATE interactions SET interaction = ? WHERE interactionId = ?",
             (newinteraction, interactionId)
         )
         self.conn.commit()
@@ -117,7 +117,7 @@ class DatabaseRepository:
 
     def delete_interaction(self, interactionId):
         cursor = self.conn.cursor()
-        cursor.execute("DELETE FROM user_interacted WHERE interactionId = ?", (interactionId,))
+        cursor.execute("DELETE FROM interactions WHERE interactionId = ?", (interactionId,))
         self.conn.commit()
 
     def delete_user(self, userId):
