@@ -2,6 +2,7 @@ import argparse
 import os
 
 import torch
+from dotenv import load_dotenv
 
 from src.recsys.datasets.interaction import InteractionDataset
 from src.recsys.helpers import get_handler, get_dataloaders
@@ -112,9 +113,11 @@ def train(
 
 
 if __name__ == "__main__":
+    load_dotenv()
+
     parser = argparse.ArgumentParser(description='Training parameters for BERT4Rec.')
-    parser.add_argument('--data_name', type=str, default='ml-25m')
-    parser.add_argument('--data_root', type=str, default='./resources/db/')
+    parser.add_argument('--data_name', type=str, default=os.getenv("MOVIELENS_VERSION"))
+    parser.add_argument('--data_root', type=str, default=os.getenv("DATABASE_ROOT"))
     parser.add_argument('--data_user_col', type=str, default='userId')
     parser.add_argument('--data_item_col', type=str, default='movieId')
     parser.add_argument('--data_chrono_col', type=str, default='timestamp')

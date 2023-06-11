@@ -2,7 +2,7 @@ import numpy as np
 import pytorch_lightning as pl
 import torch
 
-from src.recsys.metrics.sequential import evaluate_ranking
+from src.recsys.metrics.sequential import hr_at_k
 
 
 class SequentialRecommender(pl.LightningModule):
@@ -49,8 +49,8 @@ class SequentialRecommender(pl.LightningModule):
         predictions, loss, accuracy = self.handle_batch(batch, inference=False)
         self.log("test_loss", loss, logger=True, on_epoch=True)
         self.log("test_accuracy", accuracy, logger=True, on_epoch=True)
-        for metric, scores in evaluate_ranking(predictions, truths, k_values=[1, 5, 10]).items():
-            self.log(f"test_{metric}", scores.mean(), logger=True, on_epoch=True)
+        for metric, score in hr_at_k(predictions, truths, [1, 5, 10]):
+            self.log(f"test_{metric}", score / len(batch), logger=True, on_epoch=True)
         return loss
 
     def predict_step(self, batch, *args, k=10):
