@@ -60,6 +60,7 @@ def train(
         device,
         seq_length,
         mask_p,
+        pretrained,
         hidden_size,
         batch_size,
         epochs,
@@ -82,16 +83,25 @@ def train(
         num_workers,
         mask_p
     )
-    model = BERT4Rec(
-        seq_length=seq_length,
-        vocab_size=train_loader.dataset.vocab_size,
-        mask_token=train_loader.dataset.mask_token,
-        pad_token=train_loader.dataset.pad_token,
-        hidden_size=hidden_size,
-        dropout=dropout,
-        lr=lr,
-        weight_decay=weight_decay
-    )
+    if pretrained:
+        model = BERT4Rec.load_from_checkpoint(
+            os.path.join(checkpoint_dir, pretrained),
+            vocab_size=train_loader.dataset.vocab_size,
+            mask_token=train_loader.dataset.mask_token,
+            pad_token=train_loader.dataset.pad_token,
+            map_location=device
+        )
+    else:
+        model = BERT4Rec(
+            seq_length=seq_length,
+            vocab_size=train_loader.dataset.vocab_size,
+            mask_token=train_loader.dataset.mask_token,
+            pad_token=train_loader.dataset.pad_token,
+            hidden_size=hidden_size,
+            dropout=dropout,
+            lr=lr,
+            weight_decay=weight_decay
+        )
     checkpoint_prefix = f"{model.__class__.__name__.lower()}_{data_name}"
     handler = get_handler(
         epochs=epochs,
@@ -166,6 +176,7 @@ if __name__ == "__main__":
         args.device,
         args.seq_length,
         args.mask_p,
+        args.pretrained,
         args.hidden_size,
         args.batch_size,
         args.epochs,

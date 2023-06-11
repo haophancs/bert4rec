@@ -2,7 +2,7 @@ import numpy as np
 import pytorch_lightning as pl
 import torch
 
-from src.recsys.metrics.sequential import hr_at_k
+from src.recsys.metrics.sequential import hr_at_k, ndcg_at_k, mrr
 
 
 class SequentialRecommender(pl.LightningModule):
@@ -49,17 +49,16 @@ class SequentialRecommender(pl.LightningModule):
         predictions, loss, accuracy = self.handle_batch(batch, inference=False)
         self.log("test_loss", loss, logger=True, on_epoch=True)
         self.log("test_accuracy", accuracy, logger=True, on_epoch=True)
-        for metric, score in hr_at_k(predictions, truths, [1, 5, 10]).items():
-            self.log(f"test_{metric}", score / batch[0].shape[0], logger=True, on_step=True, on_epoch=True)
-        return loss
 
-    def predict_step(self, batch, *args, k=10):
-        with torch.no_grad():
-            predictions = self.handle_batch(batch, inference=True)
-        next_item_ids = predictions[0, -1].detach().cpu().numpy()
-        next_item_ids = np.argsort(next_item_ids).tolist()[::-1][:k]
-        next_item_ids = np.setdiff1d(next_item_ids, batch).tolist()
-        return next_item_ids
+        for metric, score in hr_at_k(predictions, truths, [1, 5, 10]).items():
+            self.log(f"test_{metric}", score, logger=True, on_step=True, on_epoch=True)
+
+        for metric, score in ndcg_at_k(predictions, truths, [5, 10]).items():
+            self.log(f"test_{metric}", score, logger=True, on_step=True, on_epoch=True)
+
+        self.log(f"test_mrr", mrr(predictions, truths), logger=True, on_step=True, on_epoch=True)
+
+        return loss
 
     def configure_optimizers(self):
         if self.lr is None:

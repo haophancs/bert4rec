@@ -130,11 +130,37 @@ class DatabaseRepository:
         cursor.execute("DELETE FROM movies WHERE movieId = ?", (movieId,))
         self.conn.commit()
 
+    def get_recent_user_interactions(self, user_id, k, minutes=None, cols='*'):
+        if isinstance(cols, list):
+            cols = ', '.join(cols)
+
+        query = f'''
+            SELECT {cols}
+            FROM interactions
+            WHERE userId = ?
+        '''
+
+        params = [user_id]
+
+        if minutes is not None:
+            end_timestamp = datetime.datetime.utcnow()
+            start_timestamp = end_timestamp - datetime.timedelta(minutes=minutes)
+            query += ' AND timestamp BETWEEN ? AND ?'
+            params.extend([start_timestamp, end_timestamp])
+
+        query += ' ORDER BY timestamp DESC LIMIT ?'
+        params.append(k)
+
+        cursor = self.conn.cursor()
+        cursor.execute(query, params)
+        rows = cursor.fetchall()
+        return rows
+
     def close_connection(self):
         self.conn.close()
 
     @staticmethod
-    def dump_from_df(datadf, table_name, db_file):
+    def dump_from_df(df, table_name, db_file):
         conn = sqlite3.connect(db_file)
-        datadf.to_sql(table_name, conn, if_exists='replace', index=False)
+        df.to_sql(table_name, conn, if_exists='replace', index=False)
         conn.close()
