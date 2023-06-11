@@ -68,4 +68,4 @@ def get_dataloaders(
     ]
     if len(loaders) == 1:
         return loaders[0]
-    return interactions_data, loaders
+    return loaders
