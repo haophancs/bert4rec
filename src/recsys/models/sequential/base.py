@@ -50,7 +50,7 @@ class SequentialRecommender(pl.LightningModule):
         self.log("test_loss", loss, logger=True, on_epoch=True)
         self.log("test_accuracy", accuracy, logger=True, on_epoch=True)
         for metric, score in hr_at_k(predictions, truths, [1, 5, 10]).items():
-            self.log(f"test_{metric}", score / len(batch), logger=True, on_step=True, on_epoch=True)
+            self.log(f"test_{metric}", score / batch[0].shape[0], logger=True, on_step=True, on_epoch=True)
         return loss
 
     def predict_step(self, batch, *args, k=10):
