@@ -53,8 +53,6 @@ def get_dataloaders(
     )
     interactions_data = InteractionDataset(
         df=df,
-        user_ids=user_ids,
-        item_ids=item_ids,
         user_id_col=data_user_col,
         item_id_col=data_item_col,
         chrono_col=chrono_col
