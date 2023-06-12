@@ -52,10 +52,10 @@ class SequentialRecommender(pl.LightningModule):
         targets = batch[1][batch[0] == 1].detach().cpu().numpy()
 
         for k in [1, 5, 10]:
-            results[f'test_hr@{k}'] = hr_at_k(predictions, targets, k)
+            results[f'hr@{k}'] = hr_at_k(predictions, targets, k)
         for k in [5, 10]:
-            results[f'test_ndcg@{k}'] = ndcg_at_k(predictions, targets, k)
-        results['test_mrr'] = mrr(predictions, targets)
+            results[f'ndcg@{k}'] = ndcg_at_k(predictions, targets, k)
+        results['mrr'] = mrr(predictions, targets)
 
         self.log(f"test_loss", loss, logger=True, on_step=True, on_epoch=True)
         self.log(f"test_accuracy", accuracy, logger=True, on_step=True, on_epoch=True)
