@@ -58,7 +58,7 @@ class SequentialRecommender(pl.LightningModule):
         results['test_mrr'] = mrr(predictions, targets)
 
         self.log(f"test_loss", loss, logger=True, on_step=True, on_epoch=True)
-        self.log(f"test_accuracy", loss, logger=True, on_step=True, on_epoch=True)
+        self.log(f"test_accuracy", accuracy, logger=True, on_step=True, on_epoch=True)
         for metric, score in results.items():
             self.log(f"test_{metric}", score, logger=True, on_step=True, on_epoch=True)
 
