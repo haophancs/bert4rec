@@ -70,17 +70,3 @@ class BERT4Rec(SequentialRecommender):
 
     def batch_truths(self, batch):
         return batch[1][batch[0] == self.mask_token]
-
-    def predict(self, item_ids, k=30):
-        masked_sequence = torch.LongTensor(pad_array(
-            np.array(item_ids + [self.mask_token]),
-            length=self.seq_length,
-            pad_val=self.pad_token,
-            mode='left'
-        )).unsqueeze(0)
-        with torch.no_grad():
-            prediction = self(masked_sequence)
-        next_item_ids = prediction[0, -1].detach().cpu().numpy()
-        next_item_ids = np.argsort(next_item_ids).tolist()[::-1][:k]
-        next_item_ids = np.setdiff1d(next_item_ids, item_ids)
-        return next_item_ids

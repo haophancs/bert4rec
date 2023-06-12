@@ -54,7 +54,7 @@ class SequentialItemsDataset(torch.utils.data.Dataset):
         masked_sequence = current_sequence.copy()
 
         if self.split == 'infer':
-            masked_sequence = np.append(masked_sequence, 1)
+            masked_sequence = np.append(masked_sequence, 1)[-self.seq_length:]
             masked_sequence = pad_array(masked_sequence, self.seq_length, pad_val=self.pad_token, mode='left')
             return torch.LongTensor(masked_sequence)
 
@@ -65,7 +65,7 @@ class SequentialItemsDataset(torch.utils.data.Dataset):
         else:
             masked_sequence = mask_last_elements_array(masked_sequence, self.mask_token, mask_length=1, p=1)
 
-        pad_mode = "left" if random.random() < 0.5 else "right"
+        pad_mode = "left" if self.split == 'test' or random.random() < 0.5 else "right"
         current_sequence = pad_array(current_sequence, self.seq_length, self.pad_token, pad_mode)
         masked_sequence = pad_array(masked_sequence, self.seq_length, self.pad_token, pad_mode)
         masked_sequence = torch.LongTensor(masked_sequence)

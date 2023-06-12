@@ -19,37 +19,27 @@ def masked_cross_entropy(masked_sequence_predictions: torch.Tensor, truths: torc
     return masked_loss.sum() / (mask.sum() + 1e-8)
 
 
-def hr_at_k(predictions, truths, k_values):
-    top_indices = torch.argsort(predictions[:, -1], dim=1, descending=True)
-    ranks = (top_indices == truths.unsqueeze(1)).long().argmax(dim=1)
-    return {f'HR@{k}': (ranks < k).sum().item() for k in k_values}
+def hr_at_k(predictions: np.array, targets: np.array, k: int):
+    hit_counts = np.sum(np.isin(targets, predictions[:, :k]))
+    hr_k = hit_counts / len(predictions)
+    return hr_k
 
 
-def mrr(predictions, truths):
-    top_indices = torch.argsort(predictions[:, -1], dim=1, descending=True)
-    ranks = (top_indices == truths.unsqueeze(1)).long().argmax(dim=1) + 1
-    reciprocal_ranks = 1.0 / ranks.float()
-    return reciprocal_ranks.mean().item()
+def ndcg_at_k(predictions: np.array, targets: np.array, k: int):
+    ndcg_scores = np.zeros(len(predictions))
+    for i in range(len(predictions)):
+        target = targets[i]
+        prediction = predictions[i][:k]
+        mask = np.isin(target, prediction)
+        target_ranks = np.where(prediction == target)[0] + 1
+        ndcg_scores[i] = np.sum(mask / np.log2(target_ranks + 1))
+    ndcg_k = np.mean(ndcg_scores) if len(ndcg_scores) > 0 else 0.0
+    return ndcg_k
 
 
-def ndcg_at_k(predictions, truths, k_values):
-    top_indices = torch.argsort(predictions[:, -1], dim=1, descending=True)
-    batch_size = predictions.shape[0]
-    ndcg_values = torch.zeros(batch_size, len(k_values))
-
-    for k_idx, k in enumerate(k_values):
-        for i in range(batch_size):
-            rank = 1
-            dcg = 0.0
-            idcg = 0.0
-            truth = truths[i]
-            for j in top_indices[i]:
-                if rank > k:
-                    break
-                if j == truth:
-                    dcg += 1.0 / np.log2(rank + 1)
-                idcg += 1.0 / np.log2(rank + 1)
-                rank += 1
-            ndcg_values[i, k_idx] = dcg / idcg if idcg > 0 else 0.0
-
-    return {f'NDCG@{k}': ndcg_values[:, k_idx].mean().item() for k_idx, k in enumerate(k_values)}
+def mrr(predictions: np.array, targets: np.array):
+    reciprocal_ranks = np.array(
+        [1 / (np.where(prediction == target)[0][0] + 1) for target, prediction in zip(targets, predictions) if
+         target in prediction])
+    mrr = np.mean(reciprocal_ranks) if len(reciprocal_ranks) > 0 else 0.0
+    return mrr

@@ -40,25 +40,33 @@ class SequentialRecommender(pl.LightningModule):
 
     def validation_step(self, batch, *args):
         _, loss, accuracy = self.handle_batch(batch)
-        self.log("val_loss", loss, logger=True, on_epoch=True)
-        self.log("val_accuracy", accuracy, logger=True, on_epoch=True)
+        self.log("val_loss", loss, logger=True, on_step=True, on_epoch=True)
+        self.log("val_accuracy", accuracy, logger=True, on_step=True, on_epoch=True)
         return loss
 
     def test_step(self, batch, *args):
-        truths = self.batch_truths(batch)
-        predictions, loss, accuracy = self.handle_batch(batch, inference=False)
-        self.log("test_loss", loss, logger=True, on_epoch=True)
-        self.log("test_accuracy", accuracy, logger=True, on_epoch=True)
+        results = {}
+        predictions, loss, accuracy = self.handle_batch(batch)
+        predictions = torch.argsort(predictions[:, -1], dim=1, descending=True)
+        predictions = predictions.detach().cpu().numpy()
+        targets = batch[1][batch[0] == 1].detach().cpu().numpy()
 
-        for metric, score in hr_at_k(predictions, truths, [1, 5, 10]).items():
+        for k in [1, 5, 10]:
+            results[f'test_hr@{k}'] = hr_at_k(predictions, targets, k)
+        for k in [5, 10]:
+            results[f'test_ndcg@{k}'] = ndcg_at_k(predictions, targets, k)
+        results['test_mrr'] = mrr(predictions, targets)
+
+        self.log(f"test_loss", loss, logger=True, on_step=True, on_epoch=True)
+        self.log(f"test_accuracy", loss, logger=True, on_step=True, on_epoch=True)
+        for metric, score in results.items():
             self.log(f"test_{metric}", score, logger=True, on_step=True, on_epoch=True)
 
-        for metric, score in ndcg_at_k(predictions, truths, [5, 10]).items():
-            self.log(f"test_{metric}", score, logger=True, on_step=True, on_epoch=True)
+        return results
 
-        self.log(f"test_mrr", mrr(predictions, truths), logger=True, on_step=True, on_epoch=True)
-
-        return loss
+    def predict_step(self, batch, *args):
+        predictions = self.handle_batch(batch, inference=True)
+        return torch.argsort(predictions[:, -1], dim=1, descending=True)
 
     def configure_optimizers(self):
         if self.lr is None:
