@@ -37,20 +37,19 @@ def ndcg_at_k(predictions, truths, k_values):
     batch_size = predictions.shape[0]
     ndcg_values = torch.zeros(batch_size, len(k_values))
 
-    for i in range(batch_size):
-        rank = 1
-        dcg = 0.0
-        idcg = 0.0
-        truth = truths[i]
-        for j in top_indices[i]:
-            if rank > k_values[-1]:
-                break
-            if j == truth:
-                dcg += 1.0 / np.log2(rank + 1)
-            idcg += 1.0 / np.log2(rank + 1)
-            rank += 1
-
-        for k_idx, k in enumerate(k_values):
+    for k_idx, k in enumerate(k_values):
+        for i in range(batch_size):
+            rank = 1
+            dcg = 0.0
+            idcg = 0.0
+            truth = truths[i]
+            for j in top_indices[i]:
+                if rank > k:
+                    break
+                if j == truth:
+                    dcg += 1.0 / np.log2(rank + 1)
+                idcg += 1.0 / np.log2(rank + 1)
+                rank += 1
             ndcg_values[i, k_idx] = dcg / idcg if idcg > 0 else 0.0
 
     return {f'NDCG@{k}': ndcg_values[:, k_idx].mean().item() for k_idx, k in enumerate(k_values)}
