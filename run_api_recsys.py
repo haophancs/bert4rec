@@ -23,14 +23,11 @@ celery = Celery(
 )
 app = FastAPI()
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Mount the static directory to serve static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Use Jinja2 templates
 templates = Jinja2Templates(directory="templates")
 
 

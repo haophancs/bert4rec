@@ -23,14 +23,7 @@ python3 run_train.py --batch_size 32 --hidden_size 128 --seq_length 120 --epochs
 ```
 
 ## Model usage examples 
-```
-python3 examples/example1.py
-python3 examples/example2.py
-python3 examples/example3.py
-python3 examples/example4.py
-```
-
-**I recommend running on notebook file `examples/total.ipynb` to check all examples at once.**
+Open `test.ipynb file`
 
 ## Deploy recommendation API
 ```
