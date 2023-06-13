@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Recommendation API</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    form {
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 5px;
+      margin-bottom: 10px;
+    }
+
+    input[type="submit"] {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+    }
+
+    #status,
+    #result {
+      margin-bottom: 10px;
+    }
+
+    #error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <h1>Recommendation API</h1>
+
+  <form id="recommendForm">
+    <label for="itemSequence">Item Sequence:</label>
+    <input type="text" id="itemSequence" required>
+
+    <label for="avoidedList">Avoided List:</label>
+    <input type="text" id="avoidedList">
+
+    <label for="k">K:</label>
+    <input type="number" id="k">
+
+    <input type="submit" value="Submit">
+  </form>
+
+  <div id="status"></div>
+  <div id="result"></div>
+
+  <script>
+    const recommendForm = document.getElementById('recommendForm');
+    const statusDiv = document.getElementById('status');
+    const resultDiv = document.getElementById('result');
+
+    recommendForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const itemSequenceInput = document.getElementById('itemSequence');
+      const avoidedListInput = document.getElementById('avoidedList');
+      const kInput = document.getElementById('k');
+
+      const itemSequence = itemSequenceInput.value.split(',').map(Number);
+      const avoidedList = avoidedListInput.value.split(',').map(Number);
+      const k = parseInt(kInput.value);
+
+      // Clear previous results
+      statusDiv.textContent = '';
+      resultDiv.textContent = '';
+
+      try {
+        const response = await fetch('/recommend', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ item_sequence: itemSequence, avoided_list: avoidedList, k })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const taskId = data.task_id;
+          statusDiv.textContent = 'Task enqueued. Checking status...';
+
+          // Periodically check task status
+          const intervalId = setInterval(async () => {
+            const statusResponse = await fetch(`/status/${taskId}`);
+            const statusData = await statusResponse.json();
+
+            if (statusData.status === 'completed') {
+              clearInterval(intervalId);
+              statusDiv.textContent = 'Task completed.';
+              getResult(taskId);
+            } else if (statusData.status === 'pending') {
+              statusDiv.textContent = 'Task is pending...';
+            } else {
+              clearInterval(intervalId);
+              statusDiv.textContent = 'Task failed.';
+            }
+          }, 1000);
+        } else {
+          throw new Error('Failed to enqueue task.');
+        }
+      } catch (error) {
+        statusDiv.textContent = 'An error occurred.';
+        console.error(error);
+      }
+    });
+
+    async function getResult(taskId) {
+      try {
+        const response = await fetch(`/result/${taskId}`);
+        const data = await response.json();
+
+        if (response.ok) {
+          if (data.result) {
+            resultDiv.textContent = `Result: ${data.result}`;
+          } else {
+            throw new Error('Recommendation task not completed.');
+          }
+        } else {
+          throw new Error(data.error);
+        }
+      } catch (error) {
+        resultDiv.textContent = 'An error occurred.';
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>

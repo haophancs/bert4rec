@@ -1,0 +1,3 @@
+MOVIELENS_VERSION=ml-100k
+DATASET_ROOT=./resources/datasets/
+DATABASE_ROOT=./resources/db/

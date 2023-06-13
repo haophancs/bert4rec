@@ -5,10 +5,13 @@ import numpy as np
 import pandas as pd
 import torch
 
-from src.recsys.datasets.interaction import InteractionDataset
+from src.reclib.datasets.interaction import InteractionDataset
 
 
 class SequentialItemsDataset(torch.utils.data.Dataset):
+    pad_token = 0
+    mask_token = 1
+
     def __init__(self,
                  interaction_data: InteractionDataset,
                  split: str,
@@ -16,8 +19,6 @@ class SequentialItemsDataset(torch.utils.data.Dataset):
                  mask_p=0.2):
         self.split = split
         self.interaction_data = deepcopy(interaction_data)
-        self.pad_token = 0
-        self.mask_token = 1
         self.seq_length = seq_length
         self.mask_p = mask_p
 
@@ -45,6 +46,15 @@ class SequentialItemsDataset(torch.utils.data.Dataset):
         sequence = user_interacted[start_pos:end_pos]
         return sequence
 
+    @staticmethod
+    def process_pre_infer(sequence, seq_length, item2index=None):
+        if item2index:
+            sequence = [item2index[it] for it in sequence]
+        sequence = np.array(sequence)
+        masked_sequence = np.append(sequence, 1)[-seq_length:]
+        masked_sequence = pad_array(masked_sequence, seq_length, SequentialItemsDataset.pad_token, mode='left')
+        return torch.LongTensor(masked_sequence)
+
     def __getitem__(self, idx):
         user_group = self.interaction_data.user_groups[idx]
         user_interacted = self.interaction_data.user_group_by.get_group(user_group)
@@ -54,9 +64,7 @@ class SequentialItemsDataset(torch.utils.data.Dataset):
         masked_sequence = current_sequence.copy()
 
         if self.split == 'infer':
-            masked_sequence = np.append(masked_sequence, 1)[-self.seq_length:]
-            masked_sequence = pad_array(masked_sequence, self.seq_length, pad_val=self.pad_token, mode='left')
-            return torch.LongTensor(masked_sequence)
+            return self.process_pre_infer(sequence=masked_sequence)
 
         if self.split == "train":
             masked_sequence = mask_array(masked_sequence, self.mask_token, p=self.mask_p)

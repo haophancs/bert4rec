@@ -1,11 +1,10 @@
 import argparse
 import os
 
-import torch
 from dotenv import load_dotenv
 
-from src.recsys.helpers import get_handler, get_dataloaders
-from src.recsys.models.sequential import BERT4Rec
+from src.reclib.helpers import get_handler, get_dataloaders
+from src.reclib.models.sequential import BERT4Rec
 
 
 def test(
@@ -130,9 +129,10 @@ if __name__ == "__main__":
     parser.add_argument('--data_user_col', type=str, default='userId')
     parser.add_argument('--data_item_col', type=str, default='movieId')
     parser.add_argument('--data_chrono_col', type=str, default='timestamp')
-    parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu',
+    parser.add_argument('--device', type=str, default=os.getenv("RECSYS_DEVICE"),
                         help='Device to use for training.')
-    parser.add_argument('--seq_length', type=int, default=120, help='Sequence length for training.')
+    parser.add_argument('--seq_length', type=int, default=os.getenv("RECSYS_SEQ_LENGTH"),
+                        help='Sequence length for training.')
     parser.add_argument('--mask_p', type=float, default=0.2, help='Probability for masking.')
     parser.add_argument('--pretrained', type=str, default=None, help='Path to the pretrained checkpoint')
     parser.add_argument('--hidden_size', type=int, default=128, help='Hidden length for BERT4Rec.')

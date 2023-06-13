@@ -4,3 +4,7 @@ numpy
 torch
 pytorch_lightning
 tensorboard
+fastapi
+celery
+redis
+uvicorn

@@ -1,5 +1,5 @@
 import sqlite3
-
+from datetime import datetime, timedelta
 from typing import List
 
 
@@ -15,7 +15,6 @@ class DatabaseRepository:
                 interactionId INTEGER PRIMARY KEY AUTOINCREMENT,
                 userId INTEGER,
                 movieId INTEGER,
-                interaction INTEGER,
                 timestamp TEXT,
                 FOREIGN KEY (userId) REFERENCES users(userId),
                 FOREIGN KEY (movieId) REFERENCES movies(movieId)
@@ -35,36 +34,13 @@ class DatabaseRepository:
                 movieId INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT,
                 genres TEXT,
+                year INTEGER,
+                popularity REAL,
                 imdbId TEXT,
                 tmdbId TEXT
             )
         ''')
 
-        self.conn.commit()
-
-    def create_interaction(self, userId, movieId, interaction):
-        timestamp = datetime.utcnow().isoformat()
-        cursor = self.conn.cursor()
-        cursor.execute(
-            "INSERT INTO interactions (userId, movieId, interaction, timestamp) VALUES (?, ?, ?, ?)",
-            (userId, movieId, interaction, timestamp)
-        )
-        self.conn.commit()
-
-    def create_user(self, name, password):
-        cursor = self.conn.cursor()
-        cursor.execute(
-            "INSERT INTO users (name, password) VALUES (?, ?)",
-            (name, password)
-        )
-        self.conn.commit()
-
-    def create_movie(self, title, genres, imdbId, tmdbId):
-        cursor = self.conn.cursor()
-        cursor.execute(
-            "INSERT INTO movies (title, genres, imdbId, tmdbId) VALUES (?, ?, ?, ?)",
-            (title, genres, imdbId, tmdbId)
-        )
         self.conn.commit()
 
     def get_interactions(self, cols='*'):
@@ -91,46 +67,7 @@ class DatabaseRepository:
         rows = cursor.fetchall()
         return rows
 
-    def update_interaction(self, interactionId, newinteraction):
-        cursor = self.conn.cursor()
-        cursor.execute(
-            "UPDATE interactions SET interaction = ? WHERE interactionId = ?",
-            (newinteraction, interactionId)
-        )
-        self.conn.commit()
-
-    def update_user(self, userId, newName, newPassword):
-        cursor = self.conn.cursor()
-        cursor.execute(
-            "UPDATE users SET name = ?, password = ? WHERE userId = ?",
-            (newName, newPassword, userId)
-        )
-        self.conn.commit()
-
-    def update_movie(self, movieId, newTitle, newGenres, newImdbId, newTmdbId):
-        cursor = self.conn.cursor()
-        cursor.execute(
-            "UPDATE movies SET title = ?, genres = ?, imdbId = ?, tmdbId = ? WHERE movieId = ?",
-            (newTitle, newGenres, newImdbId, newTmdbId, movieId)
-        )
-        self.conn.commit()
-
-    def delete_interaction(self, interactionId):
-        cursor = self.conn.cursor()
-        cursor.execute("DELETE FROM interactions WHERE interactionId = ?", (interactionId,))
-        self.conn.commit()
-
-    def delete_user(self, userId):
-        cursor = self.conn.cursor()
-        cursor.execute("DELETE FROM users WHERE userId = ?", (userId,))
-        self.conn.commit()
-
-    def delete_movie(self, movieId):
-        cursor = self.conn.cursor()
-        cursor.execute("DELETE FROM movies WHERE movieId = ?", (movieId,))
-        self.conn.commit()
-
-    def get_recent_user_interactions(self, user_id, k, minutes=None, cols='*'):
+    def get_recent_user_interactions(self, user_id, k=None, minutes=None, cols='*'):
         if isinstance(cols, list):
             cols = ', '.join(cols)
 
@@ -143,17 +80,95 @@ class DatabaseRepository:
         params = [user_id]
 
         if minutes is not None:
-            end_timestamp = datetime.datetime.utcnow()
-            start_timestamp = end_timestamp - datetime.timedelta(minutes=minutes)
+            end_timestamp = datetime.utcnow()
+            start_timestamp = end_timestamp - timedelta(minutes=minutes)
             query += ' AND timestamp BETWEEN ? AND ?'
             params.extend([start_timestamp, end_timestamp])
 
-        query += ' ORDER BY timestamp DESC LIMIT ?'
-        params.append(k)
+        if k is not None:
+            query += ' ORDER BY timestamp DESC LIMIT ?'
+            params.append(k)
 
         cursor = self.conn.cursor()
         cursor.execute(query, params)
         rows = cursor.fetchall()
+        return rows
+
+    def get_movies_interacted_by_user(self, user_id, cols='*'):
+        if isinstance(cols, List):
+            cols = ', '.join(cols)
+        cursor = self.conn.cursor()
+        cursor.execute(f'''
+            SELECT {cols}
+            FROM movies
+            INNER JOIN interactions ON movies.movieId = interactions.movieId
+            WHERE interactions.userId = ?
+        ''', (user_id,))
+        rows = cursor.fetchall()
+        return rows
+
+    def get_users_interacted_with_movie(self, movie_id, cols='*'):
+        if isinstance(cols, List):
+            cols = ', '.join(cols)
+        cursor = self.conn.cursor()
+        cursor.execute(f'''
+            SELECT {cols}
+            FROM users
+            INNER JOIN interactions ON users.userId = interactions.userId
+            WHERE interactions.movieId = ?
+        ''', (movie_id,))
+        rows = cursor.fetchall()
+        return rows
+
+    def search_movie_by_title(self, title):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM movies WHERE title LIKE ?", ('%' + title + '%',))
+        rows = cursor.fetchall()
+        return rows
+
+    def filter_movies_by_genres(self, genre, k=None):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM movies WHERE genres LIKE ?", ('%' + genre + '%',))
+        if k is not None:
+            rows = cursor.fetchmany(k)
+        else:
+            rows = cursor.fetchall()
+        return rows
+
+    def filter_movies_by_year(self, year, k=None):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM movies WHERE year = ?", (year,))
+        if k is not None:
+            rows = cursor.fetchmany(k)
+        else:
+            rows = cursor.fetchall()
+        return rows
+
+    def filter_movies_by_popularity(self, min_popularity, max_popularity, k=None):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM movies WHERE popularity BETWEEN ? AND ?", (min_popularity, max_popularity))
+        if k is not None:
+            rows = cursor.fetchmany(k)
+        else:
+            rows = cursor.fetchall()
+        return rows
+
+    def get_top_popularity_movies(self, k=None):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM movies ORDER BY popularity DESC")
+        if k is not None:
+            rows = cursor.fetchmany(k)
+        else:
+            rows = cursor.fetchall()
+        return rows
+
+    def get_top_latest_movies(self, k=None):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM movies ORDER BY year DESC")
+        if k is not None:
+            rows = cursor.fetchmany(k)
+        else:
+            rows = cursor.fetchall()
         return rows
 
     def close_connection(self):

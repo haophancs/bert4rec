@@ -1,6 +1,6 @@
 import os
-import zipfile
 import urllib.request
+import zipfile
 
 import pandas as pd
 
@@ -150,8 +150,8 @@ def read_ml_25m(data_root):
 def download_and_extract(dataset_name, data_root):
     print(f"Downloading and extracting {dataset_name} dataset...")
     download_url = f"http://files.grouplens.org/datasets/movielens/{dataset_name}.zip"
-    # urllib.request.urlretrieve(download_url, f"{dataset_name}.zip")
-    os.system(f"wget {download_url}")
+    urllib.request.urlretrieve(download_url, f"{dataset_name}.zip")
+    # os.system(f"wget {download_url}")
     with zipfile.ZipFile(f"{dataset_name}.zip", "r") as zip_ref:
         zip_ref.extractall(data_root)
     os.remove(f"{dataset_name}.zip")

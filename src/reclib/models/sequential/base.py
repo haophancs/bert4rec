@@ -1,8 +1,7 @@
-import numpy as np
 import pytorch_lightning as pl
 import torch
 
-from src.recsys.metrics.sequential import hr_at_k, ndcg_at_k, mrr
+from src.reclib.metrics.sequential import hr_at_k, ndcg_at_k, mrr
 
 
 class SequentialRecommender(pl.LightningModule):
@@ -30,6 +29,9 @@ class SequentialRecommender(pl.LightningModule):
         raise NotImplementedError()
 
     def batch_truths(self, batch):
+        raise NotImplementedError()
+
+    def preprocess_infer_input(self, item_ids):
         raise NotImplementedError()
 
     def training_step(self, batch, *args):
