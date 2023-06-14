@@ -4,7 +4,9 @@ numpy
 torch
 pytorch_lightning
 tensorboard
+tensorboardX
 fastapi
 celery
 redis
 uvicorn
+gdown
