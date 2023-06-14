@@ -1,3 +1,5 @@
+python3 -m venv venv
+source venv/bin/activate
 mkdir -p resources/datasets resources/checkpoints resources/checkpoints resources/db logs
 pip3 install -r requirements.txt
 python3 run_dump_data.py
