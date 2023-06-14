@@ -120,6 +120,18 @@ class DatabaseRepository:
         rows = cursor.fetchall()
         return rows
 
+    def get_movie_by_id(self, movie_id, cols='*'):
+        if isinstance(cols, List):
+            cols = ', '.join(cols)
+        cursor = self.conn.cursor()
+        cursor.execute(f'''
+            SELECT {cols}
+            FROM movies
+            WHERE movieId = ?
+        ''', (movie_id,))
+        row = cursor.fetchone()
+        return row
+
     def search_movie_by_title(self, title):
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM movies WHERE title LIKE ?", ('%' + title + '%',))

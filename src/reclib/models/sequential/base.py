@@ -1,8 +1,6 @@
 import pytorch_lightning as pl
 import torch
 
-from src.reclib.metrics.sequential import hr_at_k, ndcg_at_k, mrr
-
 
 class SequentialRecommender(pl.LightningModule):
     def __init__(
@@ -52,12 +50,6 @@ class SequentialRecommender(pl.LightningModule):
         predictions = torch.argsort(predictions[:, -1], dim=1, descending=True)
         predictions = predictions.detach().cpu().numpy()
         targets = batch[1][batch[0] == 1].detach().cpu().numpy()
-
-        for k in [1, 5, 10]:
-            results[f'hr@{k}'] = hr_at_k(predictions, targets, k)
-        for k in [5, 10]:
-            results[f'ndcg@{k}'] = ndcg_at_k(predictions, targets, k)
-        results['mrr'] = mrr(predictions, targets)
 
         self.log(f"test_loss", loss, logger=True, on_step=True, on_epoch=True)
         self.log(f"test_accuracy", accuracy, logger=True, on_step=True, on_epoch=True)

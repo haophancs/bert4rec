@@ -10,11 +10,13 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from src.reclib.helpers import Bert4RecPredictor
+from src.reclib.helpers import BERT4RecPredictor
+from src.utils.db import DatabaseRepository as DBRepo
 
 mode = 'celery' if 'celery' in sys.argv[0] else 'fastapi'
 
 load_dotenv()
+db = DBRepo(os.path.join(os.getenv('DATABASE_ROOT'), os.getenv('MOVIELENS_VERSION') + '.db'))
 
 celery = Celery(
     'tasks',
@@ -62,19 +64,35 @@ def task_result(task_id: str):
 
 @celery.task
 def recommend_task(item_sequence, avoided_list, k):
-    return predictor.predict(item_sequence, avoided_list)[:k]
+    movie_ids = predictor.predict(item_sequence, avoided_list)[:k]
+    return [db.get_movie_by_id(movie_id, ['movieId', 'title', 'genres']) for movie_id in movie_ids]
 
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    return templates.TemplateResponse("recservice.html", {"request": request})
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+@celery.task
+def get_movie_task(movieId: str):
+    cols = ['movieId', 'title', 'genres']
+    movie_data = db.get_movie_by_id(movieId, cols)
+    return {cols[i]: movie_data[i] for i in range(len(cols))}
+
+
+@app.get("/movie/{movieId}")
+def get_movie(movieId: int):
+    logger.info('Received getting movie request.')
+    result = get_movie_task.delay(movieId)
+    logger.info('Getting movie task enqueued.')
+    return {'taskId': result.id}
 
 
 logger.info('Loading predictor...')
 predictor = None
 
 if mode == 'celery':
-    predictor = Bert4RecPredictor(
+    predictor = BERT4RecPredictor(
         os.path.join('./resources/checkpoints/', f"bert4rec_{os.getenv('MOVIELENS_VERSION')}_best.ckpt"),
         data_root=os.getenv('DATABASE_ROOT'),
         data_name=os.getenv('MOVIELENS_VERSION'),

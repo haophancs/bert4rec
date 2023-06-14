@@ -43,6 +43,22 @@
     #error {
       color: red;
     }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #4CAF50;
+      color: white;
+    }
   </style>
 </head>
 <body>
@@ -130,7 +146,7 @@
 
         if (response.ok) {
           if (data.result) {
-            resultDiv.textContent = `Result: ${data.result}`;
+            resultDiv.innerHTML = createResultTable(data.result);
           } else {
             throw new Error('Recommendation task not completed.');
           }
@@ -142,6 +158,86 @@
         console.error(error);
       }
     }
+
+    function createResultTable(results) {
+      let tableHTML = '<table>';
+      tableHTML += '<tr><th>ID</th><th>Title</th><th>Genre</th></tr>';
+
+      for (const result of results) {
+        tableHTML += `<tr><td>${result[0]}</td><td>${result[1]}</td><td>${result[2]}</td></tr>`;
+      }
+
+      tableHTML += '</table>';
+      return tableHTML;
+    }
+
+    async function getMovieDetails(movieId) {
+      try {
+        const response = await fetch(`/movie/${movieId}`);
+        const data = await response.json();
+
+        if (response.ok) {
+          if (data.taskId) {
+            const taskId = data.taskId;
+            const statusDiv = document.createElement('div');
+            const resultDiv = document.createElement('div');
+
+            // Display loading status
+            statusDiv.textContent = 'Getting movie details...';
+            resultDiv.setAttribute('id', `movie-${movieId}`);
+
+            // Append the status and result elements to the page
+            document.body.appendChild(statusDiv);
+            document.body.appendChild(resultDiv);
+
+            // Periodically check task status
+            const intervalId = setInterval(async () => {
+              const statusResponse = await fetch(`/status/${taskId}`);
+              const statusData = await statusResponse.json();
+
+              if (statusData.status === 'completed') {
+                clearInterval(intervalId);
+                statusDiv.textContent = 'Movie details retrieved.';
+                getMovieResult(taskId, movieId);
+              } else if (statusData.status === 'pending') {
+                statusDiv.textContent = 'Getting movie details...';
+              } else {
+                clearInterval(intervalId);
+                statusDiv.textContent = 'Failed to get movie details.';
+              }
+            }, 1000);
+          } else {
+            throw new Error('Failed to enqueue get_movie_task.');
+          }
+        } else {
+          throw new Error(data.error);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    async function getMovieResult(taskId, movieId) {
+      try {
+        const response = await fetch(`/result/${taskId}`);
+        const data = await response.json();
+
+        if (response.ok) {
+          if (data.result) {
+            const movieDiv = document.getElementById(`movie-${movieId}`);
+            movieDiv.textContent = `Movie Title: ${data.result.title}`;
+          } else {
+            throw new Error('Movie details not found.');
+          }
+        } else {
+          throw new Error(data.error);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    // Example usage: getMovieDetails(65514);
   </script>
 </body>
 </html>

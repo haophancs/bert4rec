@@ -12,6 +12,9 @@ python3 dump_data.py
 ```
 
 ## Model checkpoint 
+
+Note that only checkpoint trained on `ml-25m` provided.
+
 To download pretrained checkpoint, run:
 ```
 gdown https://drive.google.com/u/0/uc?id=1gf4_zpHd4H-ZH625TvcSEEs95idxYGOa
@@ -31,14 +34,9 @@ python3 run_redis.py
 ```
 Then open another terminal tab and run:
 ```
-celery -A run_api_recsys.celery worker --loglevel=info   
+ celery -A run_api.celery worker --loglevel=info --pool=solo
 ```
 Then open another terminal tab and run:
 ```
-uvicorn run_api_recsys:app
-```
-
-## Deploy demo website
-```
-uvicorn run_website:app
+uvicorn run_api:app --reload
 ```

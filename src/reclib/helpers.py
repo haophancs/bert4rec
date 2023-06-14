@@ -73,7 +73,7 @@ def get_dataloaders(
     return loaders
 
 
-class Bert4RecPredictor:
+class BERT4RecPredictor:
     def __init__(
             self,
             checkpoint_path,
@@ -112,6 +112,9 @@ class Bert4RecPredictor:
         avoided_items.extend([SequentialItemsDataset.mask_token, SequentialItemsDataset.pad_token])
         try:
             sequence.remove(SequentialItemsDataset.pad_token)
+        except ValueError:
+            pass
+        try:
             sequence.remove(SequentialItemsDataset.mask_token)
         except ValueError:
             pass
