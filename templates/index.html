@@ -106,7 +106,7 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ item_sequence: itemSequence, avoided_list: avoidedList, k })
+          body: JSON.stringify({ item_sequence: itemSequence, avoided_list: avoidedList, k: k })
         });
 
         if (response.ok) {

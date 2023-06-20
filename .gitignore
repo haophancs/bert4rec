@@ -3,7 +3,7 @@ logs/
 .idea/
 venv/
 __pycache__/
-*.ipynb
 .ipynb_checkpoints/
 lightning_logs/
 *.rdb
+*.out

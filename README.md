@@ -1,3 +1,8 @@
+## Install and run at once
+```
+bash RUNME.sh
+```
+
 ## Prepare environment
 ```
 python3 -m venv venv
@@ -26,7 +31,9 @@ python3 run_train.py --batch_size 32 --hidden_size 128 --seq_length 120 --epochs
 ```
 
 ## Model usage examples 
-Open `test.ipynb file`
+```
+python3 run_example.py
+```
 
 ## Deploy recommendation API
 ```
