@@ -1,243 +1,245 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Recommendation API</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
+    <title>Recommendation API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
 
-    h1 {
-      text-align: center;
-    }
+        h1 {
+            text-align: center;
+        }
 
-    form {
-      margin-bottom: 20px;
-    }
+        form {
+            margin-bottom: 20px;
+        }
 
-    label {
-      font-weight: bold;
-    }
+        label {
+            font-weight: bold;
+        }
 
-    input[type="text"],
-    input[type="number"] {
-      width: 100%;
-      padding: 5px;
-      margin-bottom: 10px;
-    }
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
 
-    input[type="submit"] {
-      background-color: #4CAF50;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      cursor: pointer;
-    }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
 
-    #status,
-    #result {
-      margin-bottom: 10px;
-    }
+        #status,
+        #result {
+            margin-bottom: 10px;
+        }
 
-    #error {
-      color: red;
-    }
+        #error {
+            color: red;
+        }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
 
-    th, td {
-      padding: 8px;
-      text-align: left;
-      border-bottom: 1px solid #ddd;
-    }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
 
-    th {
-      background-color: #4CAF50;
-      color: white;
-    }
-  </style>
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
 </head>
 <body>
-  <h1>Recommendation API</h1>
+<h1>Recommendation API</h1>
 
-  <form id="recommendForm">
+<form id="recommendForm">
     <label for="itemSequence">Item Sequence:</label>
-    <input type="text" id="itemSequence" required>
+    <input id="itemSequence" required type="text">
 
     <label for="avoidedList">Avoided List:</label>
-    <input type="text" id="avoidedList">
+    <input id="avoidedList" type="text">
 
     <label for="k">K:</label>
-    <input type="number" id="k">
+    <input id="k" type="number">
 
     <input type="submit" value="Submit">
-  </form>
+</form>
 
-  <div id="status"></div>
-  <div id="result"></div>
+<div id="status"></div>
+<div id="result"></div>
 
-  <script>
+<script>
     const recommendForm = document.getElementById('recommendForm');
     const statusDiv = document.getElementById('status');
     const resultDiv = document.getElementById('result');
 
     recommendForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
+        event.preventDefault();
 
-      const itemSequenceInput = document.getElementById('itemSequence');
-      const avoidedListInput = document.getElementById('avoidedList');
-      const kInput = document.getElementById('k');
+        const itemSequenceInput = document.getElementById('itemSequence');
+        const avoidedListInput = document.getElementById('avoidedList');
+        const kInput = document.getElementById('k');
 
-      const itemSequence = itemSequenceInput.value.split(',').map(Number);
-      const avoidedList = avoidedListInput.value.split(',').map(Number);
-      const k = parseInt(kInput.value);
+        const itemSequence = itemSequenceInput.value.split(',').map(Number);
+        const avoidedList = avoidedListInput.value.split(',').map(Number);
+        const k = parseInt(kInput.value);
 
-      // Clear previous results
-      statusDiv.textContent = '';
-      resultDiv.textContent = '';
+        // Clear previous results
+        statusDiv.textContent = '';
+        resultDiv.textContent = '';
 
-      try {
-        const response = await fetch('/recommend', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ item_sequence: itemSequence, avoided_list: avoidedList, k: k })
-        });
+        try {
+            const url = new URL('/recommend', window.location.origin);
+            url.searchParams.append('k', k);
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({item_sequence: itemSequence, avoided_list: avoidedList})
+            });
 
-        if (response.ok) {
-          const data = await response.json();
-          const taskId = data.task_id;
-          statusDiv.textContent = 'Task enqueued. Checking status...';
+            if (response.ok) {
+                const data = await response.json();
+                const taskId = data.task_id;
+                statusDiv.textContent = 'Task enqueued. Checking status...';
 
-          // Periodically check task status
-          const intervalId = setInterval(async () => {
-            const statusResponse = await fetch(`/status/${taskId}`);
-            const statusData = await statusResponse.json();
+                // Periodically check task status
+                const intervalId = setInterval(async () => {
+                    const statusResponse = await fetch(`/status/${taskId}`);
+                    const statusData = await statusResponse.json();
 
-            if (statusData.status === 'completed') {
-              clearInterval(intervalId);
-              statusDiv.textContent = 'Task completed.';
-              getResult(taskId);
-            } else if (statusData.status === 'pending') {
-              statusDiv.textContent = 'Task is pending...';
+                    if (statusData.status === 'completed') {
+                        clearInterval(intervalId);
+                        statusDiv.textContent = 'Task completed.';
+                        getResult(taskId);
+                    } else if (statusData.status === 'pending') {
+                        statusDiv.textContent = 'Task is pending...';
+                    } else {
+                        clearInterval(intervalId);
+                        statusDiv.textContent = 'Task failed.';
+                    }
+                }, 1000);
             } else {
-              clearInterval(intervalId);
-              statusDiv.textContent = 'Task failed.';
+                throw new Error('Failed to enqueue task.');
             }
-          }, 1000);
-        } else {
-          throw new Error('Failed to enqueue task.');
+        } catch (error) {
+            statusDiv.textContent = 'An error occurred.';
+            console.error(error);
         }
-      } catch (error) {
-        statusDiv.textContent = 'An error occurred.';
-        console.error(error);
-      }
     });
 
     async function getResult(taskId) {
-      try {
-        const response = await fetch(`/result/${taskId}`);
-        const data = await response.json();
+        try {
+            const response = await fetch(`/result/${taskId}`);
+            const data = await response.json();
 
-        if (response.ok) {
-          if (data.result) {
-            resultDiv.innerHTML = createResultTable(data.result);
-          } else {
-            throw new Error('Recommendation task not completed.');
-          }
-        } else {
-          throw new Error(data.error);
+            if (response.ok) {
+                if (data.result) {
+                    resultDiv.innerHTML = createResultTable(data.result);
+                } else {
+                    throw new Error('Recommendation task not completed.');
+                }
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (error) {
+            resultDiv.textContent = 'An error occurred.';
+            console.error(error);
         }
-      } catch (error) {
-        resultDiv.textContent = 'An error occurred.';
-        console.error(error);
-      }
     }
 
     function createResultTable(results) {
-      let tableHTML = '<table>';
-      tableHTML += '<tr><th>ID</th><th>Title</th><th>Genre</th></tr>';
+        let tableHTML = '<table>';
+        tableHTML += '<tr><th>ID</th><th>Title</th><th>Genre</th></tr>';
 
-      for (const result of results) {
-        tableHTML += `<tr><td>${result[0]}</td><td>${result[1]}</td><td>${result[2]}</td></tr>`;
-      }
+        for (const result of results) {
+            tableHTML += `<tr><td>${result[0]}</td><td>${result[1]}</td><td>${result[2]}</td></tr>`;
+        }
 
-      tableHTML += '</table>';
-      return tableHTML;
+        tableHTML += '</table>';
+        return tableHTML;
     }
 
     async function getMovieDetails(movieId) {
-      try {
-        const response = await fetch(`/movie/${movieId}`);
-        const data = await response.json();
+        try {
+            const response = await fetch(`/movie/${movieId}`);
+            const data = await response.json();
 
-        if (response.ok) {
-          if (data.taskId) {
-            const taskId = data.taskId;
-            const statusDiv = document.createElement('div');
-            const resultDiv = document.createElement('div');
+            if (response.ok) {
+                if (data.taskId) {
+                    const taskId = data.taskId;
+                    const statusDiv = document.createElement('div');
+                    const resultDiv = document.createElement('div');
 
-            // Display loading status
-            statusDiv.textContent = 'Getting movie details...';
-            resultDiv.setAttribute('id', `movie-${movieId}`);
+                    // Display loading status
+                    statusDiv.textContent = 'Getting movie details...';
+                    resultDiv.setAttribute('id', `movie-${movieId}`);
 
-            // Append the status and result elements to the page
-            document.body.appendChild(statusDiv);
-            document.body.appendChild(resultDiv);
+                    // Append the status and result elements to the page
+                    document.body.appendChild(statusDiv);
+                    document.body.appendChild(resultDiv);
 
-            // Periodically check task status
-            const intervalId = setInterval(async () => {
-              const statusResponse = await fetch(`/status/${taskId}`);
-              const statusData = await statusResponse.json();
+                    // Periodically check task status
+                    const intervalId = setInterval(async () => {
+                        const statusResponse = await fetch(`/status/${taskId}`);
+                        const statusData = await statusResponse.json();
 
-              if (statusData.status === 'completed') {
-                clearInterval(intervalId);
-                statusDiv.textContent = 'Movie details retrieved.';
-                getMovieResult(taskId, movieId);
-              } else if (statusData.status === 'pending') {
-                statusDiv.textContent = 'Getting movie details...';
-              } else {
-                clearInterval(intervalId);
-                statusDiv.textContent = 'Failed to get movie details.';
-              }
-            }, 1000);
-          } else {
-            throw new Error('Failed to enqueue get_movie_task.');
-          }
-        } else {
-          throw new Error(data.error);
+                        if (statusData.status === 'completed') {
+                            clearInterval(intervalId);
+                            statusDiv.textContent = 'Movie details retrieved.';
+                            getMovieResult(taskId, movieId);
+                        } else if (statusData.status === 'pending') {
+                            statusDiv.textContent = 'Getting movie details...';
+                        } else {
+                            clearInterval(intervalId);
+                            statusDiv.textContent = 'Failed to get movie details.';
+                        }
+                    }, 1000);
+                } else {
+                    throw new Error('Failed to enqueue get_movie_task.');
+                }
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (error) {
+            console.error(error);
         }
-      } catch (error) {
-        console.error(error);
-      }
     }
 
     async function getMovieResult(taskId, movieId) {
-      try {
-        const response = await fetch(`/result/${taskId}`);
-        const data = await response.json();
+        try {
+            const response = await fetch(`/result/${taskId}`);
+            const data = await response.json();
 
-        if (response.ok) {
-          if (data.result) {
-            const movieDiv = document.getElementById(`movie-${movieId}`);
-            movieDiv.textContent = `Movie Title: ${data.result.title}`;
-          } else {
-            throw new Error('Movie details not found.');
-          }
-        } else {
-          throw new Error(data.error);
+            if (response.ok) {
+                if (data.result) {
+                    const movieDiv = document.getElementById(`movie-${movieId}`);
+                    movieDiv.textContent = `Movie Title: ${data.result.title}`;
+                } else {
+                    throw new Error('Movie details not found.');
+                }
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (error) {
+            console.error(error);
         }
-      } catch (error) {
-        console.error(error);
-      }
     }
 
     // Example usage: getMovieDetails(65514);
-  </script>
+</script>
 </body>
 </html>
