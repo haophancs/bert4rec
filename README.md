@@ -7,7 +7,7 @@ bash RUNME.sh
 ## Detailed steps
 ### Prepare environment
 ```
-mkdir -p resources/datasets resources/checkpoints resources/checkpoints resources/db logs
+mkdir -p resources/datasets resources/checkpoints resources/db logs
 python3 -m venv venv
 source venv/bin/activate
 pip3 install -r requirements.txt
