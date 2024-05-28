@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import torch
 
-from src.reclib.datasets.interaction import InteractionDataset
+from bert4rec_service.mlops import InteractionDataset
 
 
 class SequentialItemsDataset(torch.utils.data.Dataset):

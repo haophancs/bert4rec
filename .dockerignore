@@ -1,7 +1,9 @@
 ### Python template
 
+deploy/
 .idea/
 .vscode/
+.git/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -62,8 +64,8 @@ cover/
 # Django stuff:
 *.log
 local_settings.py
-*.sqlite3
-*.sqlite3-journal
+db.sqlite3
+db.sqlite3-journal
 
 # Flask stuff:
 instance/
@@ -140,10 +142,3 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
-
-resources/
-logs/
-.ipynb_checkpoints/
-lightning_logs/
-*.rdb
-*.out

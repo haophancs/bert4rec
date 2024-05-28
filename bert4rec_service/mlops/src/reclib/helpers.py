@@ -8,8 +8,8 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 from torch.utils.data import DataLoader
 
-from src.reclib.datasets.interaction import InteractionDataset
-from src.reclib.datasets.sequential import SequentialItemsDataset
+from bert4rec_service.mlops import InteractionDataset
+from bert4rec_service.mlops import SequentialItemsDataset
 from src.reclib.models.sequential import BERT4Rec
 from src.utils.db import DatabaseRepository as DBRepo
 

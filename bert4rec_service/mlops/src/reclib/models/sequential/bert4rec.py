@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from src.reclib.metrics.sequential import masked_accuracy, masked_cross_entropy
+from bert4rec_service.mlops import masked_accuracy, masked_cross_entropy
 from src.reclib.models.sequential.base import SequentialRecommender
 
 
