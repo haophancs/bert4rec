@@ -25,8 +25,7 @@ Note that only checkpoint trained on `ml-25m` provided.
 
 To download pretrained checkpoint, run:
 ```
-gdown https://drive.google.com/u/0/uc?id=1gf4_zpHd4H-ZH625TvcSEEs95idxYGOa
-mv bert4rec_ml-25m_best.ckpt resources/checkpoints/
+wget -O resources/checkpoints/bert4rec_ml-25m_best https://uithcm-my.sharepoint.com/:u:/g/personal/18520216_ms_uit_edu_vn/EVCvHZg7QFZGlis704IiPdIBMJxIK37tcVGUM9zY-LzlCw?e=tCgA0J&download=1
 ```
 To train the model, run:
 ```
