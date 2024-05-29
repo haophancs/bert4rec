@@ -106,7 +106,7 @@ python3 run_dump_data.py
 
 Or you can download the dumped sqlite db for `ml-25m`
 ```
-wget -O resources/db/ml-25m.db https://uithcm-my.sharepoint.com/:u:/g/personal/18520216_ms_uit_edu_vn/EYa_K9yjDGdFtMKJtRZpHUwBsRtJSw1V5JedZJA6-Ch42g?e=yUDQaZ&download=1
+wget -O resources/db/ml-25m.db "https://uithcm-my.sharepoint.com/:u:/g/personal/18520216_ms_uit_edu_vn/EYa_K9yjDGdFtMKJtRZpHUwBsRtJSw1V5JedZJA6-Ch42g?e=yUDQaZ&download=1"
 ```
 
 ### Train and Evaluate Model
@@ -114,7 +114,7 @@ wget -O resources/db/ml-25m.db https://uithcm-my.sharepoint.com/:u:/g/personal/1
 Only the checkpoint trained on `ml-25m` is provided. To download the pre-trained checkpoint, run:
 
 ```
-wget -O resources/checkpoints/bert4rec_ml-25m_best.ckpt https://uithcm-my.sharepoint.com/:u:/g/personal/18520216_ms_uit_edu_vn/EVCvHZg7QFZGlis704IiPdIBMJxIK37tcVGUM9zY-LzlCw?e=tCgA0J&download=1
+wget -O resources/checkpoints/bert4rec_ml-25m_best.ckpt "https://uithcm-my.sharepoint.com/:u:/g/personal/18520216_ms_uit_edu_vn/EVCvHZg7QFZGlis704IiPdIBMJxIK37tcVGUM9zY-LzlCw?e=tCgA0J&download=1"
 ```
 
 To train the model, run:
