@@ -97,12 +97,13 @@ class BERT4RecPredictor:
             chrono_col=chrono_col
         )
         self._seq_length = seq_length
+        self._device = device
         self._model = BERT4Rec.load_from_checkpoint(
             checkpoint_path=checkpoint_path,
             vocab_size=self._interactions_data.num_item + 2,
             mask_token=SequentialItemsDataset.mask_token,
             pad_token=SequentialItemsDataset.pad_token,
-            map_location=device
+            map_location=self._device
         )
         self._model.eval()
 
@@ -128,7 +129,7 @@ class BERT4RecPredictor:
         ranked_items = np.vectorize(
             lambda it: self._interactions_data.index2item.get(it, SequentialItemsDataset.pad_token)
         )(
-            self._model.predict_step(sequence.unsqueeze(0))[0].detach().cpu().numpy()
+            self._model.predict_step(sequence.unsqueeze(0).to(self._device))[0].detach().cpu().numpy()
         )
         ranked_items = ranked_items[np.isin(ranked_items, avoided_items, invert=True)]
         return ranked_items.tolist()
