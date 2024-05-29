@@ -21,7 +21,7 @@ seq_length = int(seq_length)  # type: ignore
 predictor = BERT4RecPredictor(
     os.path.join(
         "resources/checkpoints/",
-        f"bert4rec_{os.getenv('MOVIELENS_VERSION')}_best.ckpt",
+        f"bert4rec_{movielens_version}_best.ckpt",
     ),
     data_root=db_root,
     data_name=movielens_version,
@@ -30,7 +30,7 @@ predictor = BERT4RecPredictor(
 )
 
 movies = pd.read_csv(
-    f"./resources/datasets/{os.getenv('MOVIELENS_VERSION')}/movies.csv",
+    f"./resources/datasets/{movielens_version}/movies.csv",
 )
 movies.set_index("movieId", inplace=True)
 movies.sample(5)
