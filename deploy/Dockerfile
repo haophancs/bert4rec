@@ -40,15 +40,11 @@ WORKDIR /app
 # Copy project files
 COPY . /app
 
-# Install project dependencies
+# Prepare for deployment
+RUN mkdir -p resources/datasets resources/checkpoints resources/db logs
 RUN python3.9 -m pip install -r requirements.txt
-
-# Prepare directories and dump data
-RUN mkdir -p resources/datasets resources/checkpoints resources/db logs \
-    && python3 run_dump_data.py
-
-# Download pretrained model
-RUN wget -O resources/checkpoints/bert4rec_ml-25m_best.ckpt https://uithcm-my.sharepoint.com/:u:/g/personal/18520216_ms_uit_edu_vn/EVCvHZg7QFZGlis704IiPdIBMJxIK37tcVGUM9zY-LzlCw?e=tCgA0J&download=1
+RUN wget -O resources/checkpoints/bert4rec_ml-25m_best.ckpt "https://uithcm-my.sharepoint.com/:u:/g/personal/18520216_ms_uit_edu_vn/EVCvHZg7QFZGlis704IiPdIBMJxIK37tcVGUM9zY-LzlCw?e=tCgA0J&download=1"
+RUN wget -O resources/db/ml-25m.db "https://uithcm-my.sharepoint.com/:u:/g/personal/18520216_ms_uit_edu_vn/EYa_K9yjDGdFtMKJtRZpHUwBsRtJSw1V5JedZJA6-Ch42g?e=yUDQaZ&download=1"
 
 # Default command (will be overridden by services in docker-compose.yml)
 CMD ["sh", "-c", "echo 'No default command specified'"]

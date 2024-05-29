@@ -8,25 +8,24 @@ services:
     volumes:
       - .:/app
     command: python run_redis.py
-    networks:
-      - app-network
+    ports:
+      - "6379:6379"
 
   celery:
     <<: *main_app
     volumes:
       - .:/app
     command: celery -A run_api.celery worker --loglevel=info --pool=solo
-    networks:
-      - app-network
+    ports:
+      - "8001:8001"
+    depends_on:
+      - redis
 
   web:
     <<: *main_app
     command: uvicorn run_api:app --reload
     ports:
       - "8000:8000"
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
+    depends_on:
+      - redis
+      - celery
