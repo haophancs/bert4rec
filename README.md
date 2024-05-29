@@ -9,6 +9,7 @@ The project encompasses training the BERT4Rec model, evaluating its performance,
 ## Install and Run
 Note: you need to install `redis-server`, `python3.9` and `pip3` first
 ```
+bash run_init.sh
 bash run_deploy.sh
 ```
 
