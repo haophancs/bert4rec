@@ -2,9 +2,9 @@
 
 ## Introduction
 
-This project aims to implement the BERT4Rec model, a neural network-based recommendation system that leverages the power of the Transformer architecture. The BERT4Rec model is trained on the MovieLens dataset to provide personalized movie recommendations based on users' interaction histories.
+This project aims to implement the BERT4Rec model, a neural network-based recommendation system that leverages the power of the Transformer architecture. The BERT4Rec model is trained on the MovieLens dataset to provide sequential movie recommendations based on users' interaction histories.
 
-The project encompasses training the BERT4Rec model, evaluating its performance, and deploying a web-based recommendation API using FastAPI and Celery. The API allows users to obtain movie recommendations based on their past interactions with the system.
+The project encompasses training the BERT4Rec model, evaluating its performance, and deploying a web-based recommendation API using FastAPI and Celery. The API allows users to obtain movie recommendations based on their past interactions as a sequence.
 
 ### Demo Video
 [![BERT4Rec - Sequential Movie Recommender System - Demo Video](static/video_thumbnail.jpeg)](https://youtu.be/BpJuPY05JqI)
