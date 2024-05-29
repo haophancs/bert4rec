@@ -85,11 +85,13 @@ class BERT4RecPredictor:
         chrono_col="timestamp",
         device="cpu",
     ):
+        print("Load data from database...")
         db_repo = DBRepo(os.path.join(data_root, f"{data_name}.db"))
         df = pd.DataFrame(
             db_repo.get_interactions([data_user_col, data_item_col, chrono_col]),
             columns=[data_user_col, data_item_col, chrono_col],
         )
+        print("Prepare interaction data...")
         self._interactions_data = InteractionDataset(
             df=df,
             user_id_col=data_user_col,
@@ -98,6 +100,7 @@ class BERT4RecPredictor:
         )
         self._seq_length = seq_length
         self._device = device
+        print("Load model with pretrained weights...")
         self._model = BERT4Rec.load_from_checkpoint(
             checkpoint_path=checkpoint_path,
             vocab_size=self._interactions_data.num_item + 2,

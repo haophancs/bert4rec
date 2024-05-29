@@ -18,10 +18,11 @@ assert seq_length is not None
 assert device is not None
 seq_length = int(seq_length)  # type: ignore
 
+print("Loading model with pretrained weights...")
 predictor = BERT4RecPredictor(
     os.path.join(
         "resources/checkpoints/",
-        f"bert4rec_{movielens_version}_best.ckpt",
+        "bert4rec_{0}_best.ckpt".format(movielens_version),
     ),
     data_root=db_root,
     data_name=movielens_version,
@@ -29,9 +30,7 @@ predictor = BERT4RecPredictor(
     device=device,
 )
 
-movies = pd.read_csv(
-    f"./resources/datasets/{movielens_version}/movies.csv",
-)
+movies = pd.read_csv("./resources/datasets/{0}/movies.csv".format(movielens_version))
 movies.set_index("movieId", inplace=True)
 movies.sample(5)
 
@@ -48,7 +47,7 @@ for k in range(1, len(allMovieIds) + 1):
 
     allRecommends.extend(recommends[:5])
 
-    print("Ranked list of next movie recommendations:")
+    print("Ranked list of next movie recommendation:")
     for movieId in recommends[:5]:
         print(movieId, movies.loc[movieId].values)
     print("=====================")

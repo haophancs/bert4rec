@@ -119,7 +119,7 @@ if mode == "celery":
     predictor = BERT4RecPredictor(
         os.path.join(
             "resources/checkpoints/",
-            f"bert4rec_{os.getenv('MOVIELENS_VERSION')}_best.ckpt",
+            f"bert4rec_{movielens_version}_best.ckpt",
         ),
         data_root=db_root,
         data_name=movielens_version,

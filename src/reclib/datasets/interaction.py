@@ -37,9 +37,9 @@ class InteractionDataset(object):
         if item_ids is None:
             item_ids = self.interactions[self.item_col].unique()
 
-        if user_ids:
+        if user_ids is not None:
             user_ids.sort()
-        if item_ids:
+        if item_ids is not None:
             item_ids.sort()
 
         self.user2index = {user: user_idx for user_idx, user in enumerate(user_ids)}
