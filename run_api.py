@@ -9,8 +9,8 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from src.reclib.utils import BERT4RecPredictor
 from src.data.db import DatabaseRepository as DBRepo
+from src.reclib.utils import BERT4RecPredictor
 
 mode = 'celery' if 'celery' in sys.argv[0] else 'fastapi'
 

@@ -1,8 +1,9 @@
 import os
-import urllib.request
 import zipfile
 
 import pandas as pd
+import requests
+from tqdm import tqdm
 
 
 def read_ml_100k(data_root):
@@ -147,11 +148,25 @@ def read_ml_25m(data_root):
     return ratings, users, movies
 
 
+def download(url: str, filename: str, chunk_size=1024):
+    resp = requests.get(url, stream=True)
+    total = int(resp.headers.get("content-length", 0))
+    with open(filename, "wb") as file, tqdm(
+            desc=filename,
+            total=total,
+            unit='iB',
+            unit_scale=True,
+            unit_divisor=1024,
+    ) as bar:
+        for data in resp.iter_content(chunk_size=chunk_size):
+            size = file.write(data)
+            bar.update(size)
+
+
 def download_and_extract(dataset_name, data_root):
     print(f"Downloading and extracting {dataset_name} dataset...")
     download_url = f"http://files.grouplens.org/datasets/movielens/{dataset_name}.zip"
-    urllib.request.urlretrieve(download_url, f"{dataset_name}.zip")
-    # os.system(f"wget {download_url}")
+    download(download_url, f"{dataset_name}.zip")
     with zipfile.ZipFile(f"{dataset_name}.zip", "r") as zip_ref:
         zip_ref.extractall(data_root)
     os.remove(f"{dataset_name}.zip")
