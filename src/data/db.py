@@ -4,8 +4,8 @@ from typing import List, Optional, Tuple, Union
 
 
 class DatabaseRepository:
-    def __init__(self, db_file: str):
-        self.conn = sqlite3.connect(db_file)
+    def __init__(self, db_file: str, check_same_thread=True):
+        self.conn = sqlite3.connect(db_file, check_same_thread=check_same_thread)
         self.create_tables()
 
     def create_tables(self) -> None:
@@ -211,6 +211,49 @@ class DatabaseRepository:
             FROM movies
             WHERE movieId = ?
         """,
+            (movie_id,),
+        )
+        row = cursor.fetchone()
+        return row
+
+    def search_movies_by_title(
+        self,
+        search_term: str,
+        limit: Optional[int] = None,
+    ) -> List[Tuple]:
+        """
+        Search for movies by their title.
+
+        :param search_term: The title or partial title to search for
+        :param limit: The maximum number of results to return
+        :return: A list of tuples representing the matching movies
+        """
+        cursor = self.conn.cursor()
+        query = "SELECT * FROM movies WHERE title LIKE ?"
+        params = [f"%{search_term}%"]
+
+        if limit is not None:
+            query += " LIMIT ?"
+            params.append(limit)  # type: ignore
+
+        cursor.execute(query, params)
+        rows = cursor.fetchall()
+        return rows
+
+    def get_movie_details(self, movie_id: int) -> Optional[Tuple]:
+        """
+        Retrieve detailed information about a movie.
+
+        :param movie_id: The movie ID
+        :return: A tuple representing the movie details, or None if not found
+        """
+        cursor = self.conn.cursor()
+        cursor.execute(
+            """
+            SELECT movieId, title, genres, year, popularity, imdbId, tmdbId
+            FROM movies
+            WHERE movieId = ?
+            """,
             (movie_id,),
         )
         row = cursor.fetchone()

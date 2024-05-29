@@ -5,10 +5,12 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            padding: 20px;
+            padding-left: 20px;
+            padding-right: 20px;
+            padding-bottom: 20px;
         }
 
-        h1 {
+        h1, h2 {
             text-align: center;
         }
 
@@ -27,12 +29,21 @@
             margin-bottom: 10px;
         }
 
-        input[type="submit"] {
+        input[type="submit"],
+        button {
             background-color: #4CAF50;
             color: white;
-            padding: 10px 20px;
+            padding: 5px 10px; /* Reduced padding */
             border: none;
             cursor: pointer;
+        }
+
+        .button-add {
+            background-color: #4CAF50; /* Green */
+        }
+
+        .button-avoid {
+            background-color: #f44336; /* Red */
         }
 
         #status,
@@ -59,20 +70,50 @@
             background-color: #4CAF50;
             color: white;
         }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center; /* Align items center */
+            padding: 5px 0; /* Reduced padding */
+        }
+
+        li:hover {
+            background-color: #f1f1f1;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 5px;
+        }
+
+        #movieList {
+            max-height: 300px; /* Fixed height for scrollable area */
+            overflow-y: auto; /* Enable vertical scrolling */
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
     </style>
 </head>
 <body>
 <h1>Recommendation API</h1>
 
+<h2>Recommendation Form</h2>
 <form id="recommendForm">
     <label for="itemSequence">Item Sequence:</label>
-    <input id="itemSequence" required type="text">
+    <input id="itemSequence" required type="text" placeholder="Enter movie IDs separated by commas">
 
     <label for="avoidedList">Avoided List:</label>
-    <input id="avoidedList" type="text">
+    <input id="avoidedList" type="text" placeholder="Enter movie IDs separated by commas">
 
     <label for="k">K:</label>
-    <input id="k" type="number">
+    <input id="k" type="number" value="5">
 
     <input type="submit" value="Submit">
 </form>
@@ -80,10 +121,19 @@
 <div id="status"></div>
 <div id="result"></div>
 
+<h2>Search Movies</h2>
+<div id="movieSearch">
+    <input type="text" id="searchInput" placeholder="Search movies..." onkeydown="if (event.key === 'Enter') searchMovies()">
+    <button onclick="searchMovies()">Search</button>
+    <div id="movieList"></div>
+</div>
+
 <script>
     const recommendForm = document.getElementById('recommendForm');
     const statusDiv = document.getElementById('status');
     const resultDiv = document.getElementById('result');
+    const searchInput = document.getElementById('searchInput');
+    const movieList = document.getElementById('movieList');
 
     recommendForm.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -173,73 +223,157 @@
         return tableHTML;
     }
 
+    function searchMovies() {
+        const searchTerm = searchInput.value.trim();
+        if (searchTerm) {
+            fetch(`/movies/search?q=${encodeURIComponent(searchTerm)}`)
+                .then(response => response.json())
+                .then(data => {
+                    displayMovieList(data);
+                })
+                .catch(error => console.error('Error searching movies:', error));
+        } else {
+            clearMovieList();
+        }
+    }
+
+    function displayMovieList(movies) {
+        clearMovieList();
+        if (movies.length > 0) {
+            const ul = document.createElement('ul');
+            movies.forEach(movie => {
+                const li = document.createElement('li');
+                li.textContent = `${movie.title} (${movie.year})`;
+
+                const buttonGroup = document.createElement('div');
+                buttonGroup.classList.add('button-group');
+
+                const addButton = document.createElement('button');
+                addButton.textContent = 'Add to Sequence';
+                addButton.classList.add('button-add');
+                addButton.onclick = () => addMovieToList(movie.movieId, 'sequence');
+
+                const avoidButton = document.createElement('button');
+                avoidButton.textContent = 'Add to Avoided';
+                avoidButton.classList.add('button-avoid');
+                avoidButton.onclick = () => addMovieToList(movie.movieId, 'avoided');
+
+                buttonGroup.appendChild(addButton);
+                buttonGroup.appendChild(avoidButton);
+
+                li.appendChild(buttonGroup);
+                ul.appendChild(li);
+            });
+            movieList.appendChild(ul);
+        } else {
+            movieList.textContent = 'No movies found.';
+        }
+    }
+
+    function clearMovieList() {
+        movieList.innerHTML = '';
+    }
+
+    function addMovieToList(movieId, listType) {
+        const itemSequenceInput = document.getElementById('itemSequence');
+        const avoidedListInput = document.getElementById('avoidedList');
+        if (listType === 'sequence') {
+            itemSequenceInput.value += `${itemSequenceInput.value ? ',' : ''}${movieId}`;
+        } else if (listType === 'avoided') {
+            avoidedListInput.value += `${avoidedListInput.value ? ',' : ''}${movieId}`;
+        }
+    }
+
     async function getMovieDetails(movieId) {
         try {
-            const response = await fetch(`/movie/${movieId}`);
+            const response = await fetch(`/movies/${movieId}`);
             const data = await response.json();
-
             if (response.ok) {
-                if (data.taskId) {
-                    const taskId = data.taskId;
-                    const statusDiv = document.createElement('div');
-                    const resultDiv = document.createElement('div');
+                if (data.error) {
+                    throw new Error(data.error);
+                } else {
+                    const movieDetails = document.createElement('div');
+                    movieDetails.innerHTML = `
+                        <h3>${data.title}</h3>
+                        <p>Genres: ${data.genres}</p>
+                        <p>Year: ${data.year}</p>
+                        <p>Popularity: ${data.popularity}</p>
+                        <p>IMDb ID: ${data.imdbId}</p>
+                        <p>TMDb ID: ${data.tmdbId}</p>
+                    `;
 
-                    // Display loading status
-                    statusDiv.textContent = 'Getting movie details...';
-                    resultDiv.setAttribute('id', `movie-${movieId}`);
+                    const movieDetailsModal = document.createElement('div');
+                    movieDetailsModal.classList.add('modal');
 
-                    // Append the status and result elements to the page
-                    document.body.appendChild(statusDiv);
-                    document.body.appendChild(resultDiv);
+                    const modalContent = document.createElement('div');
+                    modalContent.classList.add('modal-content');
+                    modalContent.appendChild(movieDetails);
 
-                    // Periodically check task status
-                    const intervalId = setInterval(async () => {
-                        const statusResponse = await fetch(`/status/${taskId}`);
-                        const statusData = await statusResponse.json();
+                    movieDetailsModal.appendChild(modalContent);
 
-                        if (statusData.status === 'completed') {
-                            clearInterval(intervalId);
-                            statusDiv.textContent = 'Movie details retrieved.';
-                            getMovieResult(taskId, movieId);
-                        } else if (statusData.status === 'pending') {
-                            statusDiv.textContent = 'Getting movie details...';
-                        } else {
-                            clearInterval(intervalId);
-                            statusDiv.textContent = 'Failed to get movie details.';
+                    const closeButton = document.createElement('span');
+                    closeButton.classList.add('close');
+                    closeButton.innerHTML = '&times;';
+                    closeButton.addEventListener('click', () => {
+                        movieDetailsModal.style.display = 'none';
+                    });
+
+                    modalContent.appendChild(closeButton);
+
+                    document.body.appendChild(movieDetailsModal);
+
+                    window.addEventListener('click', (event) => {
+                        if (event.target === movieDetailsModal) {
+                            movieDetailsModal.style.display = 'none';
                         }
-                    }, 1000);
-                } else {
-                    throw new Error('Failed to enqueue get_movie_task.');
+                    });
+
+                    movieDetailsModal.style.display = 'block';
                 }
             } else {
-                throw new Error(data.error);
+                throw new Error('Failed to get movie details.');
             }
         } catch (error) {
             console.error(error);
         }
     }
-
-    async function getMovieResult(taskId, movieId) {
-        try {
-            const response = await fetch(`/result/${taskId}`);
-            const data = await response.json();
-
-            if (response.ok) {
-                if (data.result) {
-                    const movieDiv = document.getElementById(`movie-${movieId}`);
-                    movieDiv.textContent = `Movie Title: ${data.result.title}`;
-                } else {
-                    throw new Error('Movie details not found.');
-                }
-            } else {
-                throw new Error(data.error);
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    }
-
-    // Example usage: getMovieDetails(65514);
 </script>
+
+<style>
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 30%;
+        position: relative;
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+</style>
 </body>
 </html>

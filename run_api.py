@@ -24,7 +24,7 @@ assert seq_length is not None
 assert device is not None
 seq_length = int(seq_length)  # type: ignore
 
-db = DBRepo(os.path.join(db_root, movielens_version + ".db"))
+db = DBRepo(os.path.join(db_root, movielens_version + ".db"), check_same_thread=False)
 
 celery = Celery(
     "tasks",
@@ -45,6 +45,37 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 templates = Jinja2Templates(directory="templates")
+
+
+@app.get("/movies/search")
+def search_movies(q: str, limit: Optional[int] = None):
+    movies = db.search_movies_by_title(q, limit)
+    return [
+        {
+            "movieId": movie[0],
+            "title": movie[1],
+            "genres": movie[2],
+            "year": movie[3],
+        }
+        for movie in movies
+    ]
+
+
+@app.get("/movies/{movie_id}")
+def get_movie_details(movie_id: int):
+    movie_details = db.get_movie_details(movie_id)
+    if movie_details:
+        return {
+            "movieId": movie_details[0],
+            "title": movie_details[1],
+            "genres": movie_details[2],
+            "year": movie_details[3],
+            "popularity": movie_details[4],
+            "imdbId": movie_details[5],
+            "tmdbId": movie_details[6],
+        }
+    else:
+        return {"error": "Movie not found"}
 
 
 @app.post("/recommend")
@@ -96,25 +127,25 @@ async def index(request: Request):
 
 
 @celery.task
-def get_movie_task(movieId: int):
+def get_movie_task(movie_id: int):
     cols = ["movieId", "title", "genres"]
-    movie_data = db.get_movie_by_id(movieId, cols)
+    movie_data = db.get_movie_by_id(movie_id, cols)
     if movie_data is None:
         return {}
     return {cols[i]: movie_data[i] for i in range(len(cols))}
 
 
 @app.get("/movie/{movieId}")
-def get_movie(movieId: int):
+def get_movie(movie_id: int):
     logger.info("Received getting movie request.")
-    result = get_movie_task.delay(movieId)
+    result = get_movie_task.delay(movie_id)
     logger.info("Getting movie task enqueued.")
     return {"taskId": result.id}
 
 
 logger.info("Loading predictor...")
 predictor = None
-if "celery" not in sys.argv[0]:
+if "celery" in sys.argv[0]:
     predictor = SequentialRecPredictor(
         os.path.join(
             "resources/checkpoints/",
