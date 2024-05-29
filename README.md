@@ -6,8 +6,8 @@ This project aims to implement the BERT4Rec model, a neural network-based recomm
 
 The project encompasses training the BERT4Rec model, evaluating its performance, and deploying a web-based recommendation API using FastAPI and Celery. The API allows users to obtain movie recommendations based on their past interactions with the system.
 
-## Install and Deploy at Once
-
+## Install and Run
+Note: you need to install `redis-server`, `python3.9` and `pip3` first
 ```
 bash run_deploy.sh
 ```
@@ -40,13 +40,13 @@ REDIS_HOST=localhost  # Host for the Redis server
 REDIS_PORT=6379  # Port for the Redis server
 REDIS_CELERY_DB=0  # Redis database number for Celery
 
-RECSYS_HOST=0.0.0.0  # Host for the recommendation system API
+RECSYS_HOST=localhost  # Host for the recommendation system API
 RECSYS_PORT=8001  # Port for the recommendation system API
 RECSYS_SEQ_LENGTH=120  # Length of the user interaction sequence used by the recommendation system
 RECSYS_DEVICE=cpu  # Device to use for the recommendation system (cpu or cuda)
 RECSYS_SECRET=secret_key  # Secret key for the recommendation system API
 
-WEB_HOST=0.0.0.0  # Host for the web application
+WEB_HOST=localhost  # Host for the web application
 WEB_PORT=8000  # Port for the web application
 ```
 

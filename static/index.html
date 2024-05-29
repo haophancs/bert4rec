@@ -80,7 +80,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center; /* Align items center */
-            padding: 5px 0; /* Reduced padding */
+            padding: 2px 0; /* Reduced padding */
+            font-size: 14px; /* Adjust font size */
         }
 
         li:hover {
@@ -95,9 +96,18 @@
         #movieList {
             max-height: 300px; /* Fixed height for scrollable area */
             overflow-y: auto; /* Enable vertical scrolling */
-            margin-top: 10px;
+            margin-top: 5px;
             border: 1px solid #ddd;
             padding: 10px;
+        }
+
+        #clearFormButton {
+            background-color: #f44336; /* Red */
+            margin-top: 10px;
+        }
+
+        #clearFormButton:hover {
+            background-color: #dd3333; /* Darker red on hover */
         }
     </style>
 </head>
@@ -116,6 +126,7 @@
     <input id="k" type="number" value="5">
 
     <input type="submit" value="Submit">
+    <button id="clearFormButton" onclick="clearRecommendationForm()">Clear Form</button>
 </form>
 
 <div id="status"></div>
@@ -272,6 +283,12 @@
 
     function clearMovieList() {
         movieList.innerHTML = '';
+    }
+
+    function clearRecommendationForm() {
+        document.getElementById('itemSequence').value = '';
+        document.getElementById('avoidedList').value = '';
+        document.getElementById('k').value = '5';
     }
 
     function addMovieToList(movieId, listType) {
