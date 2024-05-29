@@ -4,7 +4,7 @@
 bash run_deploy.sh
 ```
 
-## Detailed steps
+## Detailed guidelines
 ### Prepare environment
 ```
 mkdir -p resources/datasets resources/checkpoints resources/db logs
@@ -19,12 +19,12 @@ cp .env_org .env
 ```
 
 ### Prepare data
-Open `.env` file and set `MOVIELENS_VERSION=ml-25m`, or `ml-100k`, `ml-1m`, `ml-10m`, `ml-20m` 
+Open `.env` file and set `MOVIELENS_VERSION=ml-25m`, or `ml-100k`, `ml-1m`, `ml-10m`, `ml-20m`
 ```
 python3 run_dump_data.py
 ```
 
-### Model checkpoint 
+### Train and evaluate model
 
 Note that only checkpoint trained on `ml-25m` provided.
 
@@ -47,7 +47,7 @@ To view Tensorboard while training model, run:
 tensorboard --logdir logs --port 6006
 ```
 
-### Model usage examples 
+### Model inference example
 ```
 python3 run_example.py
 ```
@@ -64,3 +64,19 @@ Then open another terminal tab and run:
 ```
 uvicorn run_api:app --reload
 ```
+
+## Pre-commit
+
+To install pre-commit simply run inside the shell:
+```bash
+pre-commit install
+```
+
+pre-commit is very useful to check code before publishing.
+It's configured using .pre-commit-config.yaml file.
+
+By default it runs:
+* black (formats code);
+* mypy (validates types);
+* isort (sorts imports in all files);
+* flake8 (spots possible bugs);

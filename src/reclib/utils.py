@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 import pandas as pd
@@ -29,21 +29,21 @@ def get_handler(epochs, device, log_dir, checkpoint_dir, checkpoint_prefix):
         max_epochs=epochs,
         logger=logger,
         callbacks=[checkpoint_handler],
-        log_every_n_steps=1
+        log_every_n_steps=1,
     )
 
 
 def get_dataloaders(
-        splits,
-        data_name,
-        data_root,
-        data_user_col,
-        data_item_col,
-        chrono_col,
-        seq_length,
-        batch_size,
-        num_workers,
-        mask_p=None,
+    splits,
+    data_name,
+    data_root,
+    data_user_col,
+    data_item_col,
+    chrono_col,
+    seq_length,
+    batch_size,
+    num_workers,
+    mask_p=None,
 ):
     if isinstance(splits, str):
         splits = [splits]
@@ -51,20 +51,20 @@ def get_dataloaders(
     db_repo = DBRepo(os.path.join(data_root, f"{data_name}.db"))
     df = pd.DataFrame(
         db_repo.get_interactions([data_user_col, data_item_col, chrono_col]),
-        columns=[data_user_col, data_item_col, chrono_col]
+        columns=[data_user_col, data_item_col, chrono_col],
     )
     interactions_data = InteractionDataset(
         df=df,
         user_id_col=data_user_col,
         item_id_col=data_item_col,
-        chrono_col=chrono_col
+        chrono_col=chrono_col,
     )
     loaders = [
         DataLoader(
             SequentialItemsDataset(interactions_data, split, seq_length, mask_p),
-            shuffle=split == 'train',
+            shuffle=split == "train",
             batch_size=batch_size,
-            num_workers=num_workers
+            num_workers=num_workers,
         )
         for split in splits
     ]
@@ -75,26 +75,26 @@ def get_dataloaders(
 
 class BERT4RecPredictor:
     def __init__(
-            self,
-            checkpoint_path,
-            data_root,
-            data_name,
-            seq_length=120,
-            data_user_col='userId',
-            data_item_col='movieId',
-            chrono_col='timestamp',
-            device='cpu'
+        self,
+        checkpoint_path,
+        data_root,
+        data_name,
+        seq_length=120,
+        data_user_col="userId",
+        data_item_col="movieId",
+        chrono_col="timestamp",
+        device="cpu",
     ):
         db_repo = DBRepo(os.path.join(data_root, f"{data_name}.db"))
         df = pd.DataFrame(
             db_repo.get_interactions([data_user_col, data_item_col, chrono_col]),
-            columns=[data_user_col, data_item_col, chrono_col]
+            columns=[data_user_col, data_item_col, chrono_col],
         )
         self._interactions_data = InteractionDataset(
             df=df,
             user_id_col=data_user_col,
             item_id_col=data_item_col,
-            chrono_col=chrono_col
+            chrono_col=chrono_col,
         )
         self._seq_length = seq_length
         self._device = device
@@ -103,14 +103,21 @@ class BERT4RecPredictor:
             vocab_size=self._interactions_data.num_item + 2,
             mask_token=SequentialItemsDataset.mask_token,
             pad_token=SequentialItemsDataset.pad_token,
-            map_location=self._device
+            map_location=self._device,
         )
         self._model.eval()
 
-    def predict(self, sequence: List, avoided_items: List = None):
-        avoided_items = avoided_items if avoided_items else []
+    def predict(  # noqa: C901
+        self,
+        sequence: List[int],
+        avoided_items: Optional[List[int]] = None,
+    ) -> List[int]:
+        if avoided_items is None:
+            avoided_items = []
         avoided_items.extend(sequence)
-        avoided_items.extend([SequentialItemsDataset.mask_token, SequentialItemsDataset.pad_token])
+        avoided_items.extend(
+            [SequentialItemsDataset.mask_token, SequentialItemsDataset.pad_token],
+        )
         try:
             sequence.remove(SequentialItemsDataset.pad_token)
         except ValueError:
@@ -121,15 +128,23 @@ class BERT4RecPredictor:
             pass
         if not len(sequence):
             return []
-        sequence = SequentialItemsDataset.process_pre_infer(
-            sequence,
-            self._seq_length,
-            self._interactions_data.item2index
+        sequence_tensor = (
+            SequentialItemsDataset.process_pre_infer(
+                sequence,
+                self._seq_length,
+                self._interactions_data.item2index,
+            )
+            .unsqueeze(0)
+            .to(self._device)
         )
+
         ranked_items = np.vectorize(
-            lambda it: self._interactions_data.index2item.get(it, SequentialItemsDataset.pad_token)
+            lambda it: self._interactions_data.index2item.get(
+                it,
+                SequentialItemsDataset.pad_token,
+            ),
         )(
-            self._model.predict_step(sequence.unsqueeze(0).to(self._device))[0].detach().cpu().numpy()
+            self._model.predict_step(sequence_tensor)[0].detach().cpu().numpy(),
         )
         ranked_items = ranked_items[np.isin(ranked_items, avoided_items, invert=True)]
         return ranked_items.tolist()

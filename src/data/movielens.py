@@ -16,34 +16,94 @@ def read_ml_100k(data_root):
     movies_file = os.path.join(dataset_dir, "u.item")
     genre_file = os.path.join(dataset_dir, "u.genre")
 
-    ratings = pd.read_table(ratings_file, sep="\t", header=None, names=["userId", "movieId", "rating", "timestamp"])
+    ratings = pd.read_table(
+        ratings_file,
+        sep="\t",
+        header=None,
+        names=["userId", "movieId", "rating", "timestamp"],
+    )
     user_ids = ratings["userId"].unique()
     users = pd.DataFrame(
-        {"userId": user_ids, "name": [f"dummy_{uid}" for uid in user_ids], "password": "dummy_password"})
+        {
+            "userId": user_ids,
+            "name": [f"dummy_{uid}" for uid in user_ids],
+            "password": "dummy_password",
+        },
+    )
 
-    movies = pd.read_table(movies_file, sep="|", encoding="latin-1", header=None,
-                           names=["movieId", "title", "release_date", "video_release_date", "imdb_url", "genre1",
-                                  "genre2",
-                                  "genre3", "genre4", "genre5", "genre6", "genre7", "genre8", "genre9", "genre10",
-                                  "genre11",
-                                  "genre12", "genre13", "genre14", "genre15", "genre16", "genre17", "genre18",
-                                  "genre19"],
-                           usecols=["movieId", "title", "genre1", "genre2", "genre3", "genre4", "genre5", "genre6",
-                                    "genre7",
-                                    "genre8", "genre9", "genre10", "genre11", "genre12", "genre13", "genre14",
-                                    "genre15",
-                                    "genre16", "genre17", "genre18", "genre19"])
+    movies = pd.read_table(
+        movies_file,
+        sep="|",
+        encoding="latin-1",
+        header=None,
+        names=[
+            "movieId",
+            "title",
+            "release_date",
+            "video_release_date",
+            "imdb_url",
+            "genre1",
+            "genre2",
+            "genre3",
+            "genre4",
+            "genre5",
+            "genre6",
+            "genre7",
+            "genre8",
+            "genre9",
+            "genre10",
+            "genre11",
+            "genre12",
+            "genre13",
+            "genre14",
+            "genre15",
+            "genre16",
+            "genre17",
+            "genre18",
+            "genre19",
+        ],
+        usecols=[
+            "movieId",
+            "title",
+            "genre1",
+            "genre2",
+            "genre3",
+            "genre4",
+            "genre5",
+            "genre6",
+            "genre7",
+            "genre8",
+            "genre9",
+            "genre10",
+            "genre11",
+            "genre12",
+            "genre13",
+            "genre14",
+            "genre15",
+            "genre16",
+            "genre17",
+            "genre18",
+            "genre19",
+        ],
+    )
 
     genre_mapping = {
-        int(k) + 1: v[0] for k, v in
-        pd.read_table(genre_file, sep='|', header=None).set_index(1).T.to_dict().items()
+        int(k) + 1: v[0]
+        for k, v in pd.read_table(genre_file, sep="|", header=None)
+        .set_index(1)
+        .T.to_dict()
+        .items()
     }
 
     genre_columns = [f"genre{i}" for i in range(1, 19)]
-    movies[genre_columns] = movies[genre_columns].replace({1: True, 0: False}).astype(bool)
+    movies[genre_columns] = (
+        movies[genre_columns].replace({1: True, 0: False}).astype(bool)
+    )
     movies["genres"] = movies[genre_columns].apply(
-        lambda row: "|".join([genre_mapping[i + 1] for i, v in enumerate(row) if v]), axis=1)
-    movies = movies[['movieId', 'title', 'genres']]
+        lambda row: "|".join([genre_mapping[i + 1] for i, v in enumerate(row) if v]),
+        axis=1,
+    )
+    movies = movies[["movieId", "title", "genres"]]
 
     movies["imdbId"] = None
     movies["tmdbId"] = None
@@ -58,17 +118,33 @@ def read_ml_1m(data_root):
         download_and_extract(dataset_name, data_root)
 
     ratings_file = os.path.join(dataset_dir, "ratings.dat")
-    users_file = os.path.join(dataset_dir, "users.dat")
     movies_file = os.path.join(dataset_dir, "movies.dat")
 
-    ratings = pd.read_table(ratings_file, sep="::", engine="python", header=None, encoding='latin',
-                            names=["userId", "movieId", "rating", "timestamp"])
+    ratings = pd.read_table(
+        ratings_file,
+        sep="::",
+        engine="python",
+        header=None,
+        encoding="latin",
+        names=["userId", "movieId", "rating", "timestamp"],
+    )
     user_ids = ratings["userId"].unique()
     users = pd.DataFrame(
-        {"userId": user_ids, "name": [f"dummy_{uid}" for uid in user_ids], "password": "dummy_password"})
+        {
+            "userId": user_ids,
+            "name": [f"dummy_{uid}" for uid in user_ids],
+            "password": "dummy_password",
+        },
+    )
 
-    movies = pd.read_table(movies_file, sep="::", engine="python", header=None, encoding='latin',
-                           names=["movieId", "title", "genres"])
+    movies = pd.read_table(
+        movies_file,
+        sep="::",
+        engine="python",
+        header=None,
+        encoding="latin",
+        names=["movieId", "title", "genres"],
+    )
 
     movies["imdbId"] = None
     movies["tmdbId"] = None
@@ -85,14 +161,29 @@ def read_ml_10m(data_root):
     ratings_file = os.path.join(dataset_dir, "ratings.dat")
     movies_file = os.path.join(dataset_dir, "movies.dat")
 
-    ratings = pd.read_csv(ratings_file, sep="::", engine="python", header=None,
-                          names=["userId", "movieId", "rating", "timestamp"])
+    ratings = pd.read_csv(
+        ratings_file,
+        sep="::",
+        engine="python",
+        header=None,
+        names=["userId", "movieId", "rating", "timestamp"],
+    )
     user_ids = ratings["userId"].unique()
     users = pd.DataFrame(
-        {"userId": user_ids, "name": [f"dummy_{uid}" for uid in user_ids], "password": "dummy_password"})
+        {
+            "userId": user_ids,
+            "name": [f"dummy_{uid}" for uid in user_ids],
+            "password": "dummy_password",
+        },
+    )
 
-    movies = pd.read_csv(movies_file, sep="::", engine="python", header=None,
-                         names=["movieId", "title", "genres"])
+    movies = pd.read_csv(
+        movies_file,
+        sep="::",
+        engine="python",
+        header=None,
+        names=["movieId", "title", "genres"],
+    )
 
     movies["imdbId"] = None
     movies["tmdbId"] = None
@@ -109,10 +200,19 @@ def read_ml_20m(data_root):
     ratings_file = os.path.join(dataset_dir, "ratings.csv")
     movies_file = os.path.join(dataset_dir, "movies.csv")
 
-    ratings = pd.read_csv(ratings_file, header=0, names=["userId", "movieId", "rating", "timestamp"])
+    ratings = pd.read_csv(
+        ratings_file,
+        header=0,
+        names=["userId", "movieId", "rating", "timestamp"],
+    )
     user_ids = ratings["userId"].unique()
     users = pd.DataFrame(
-        {"userId": user_ids, "name": [f"dummy_{uid}" for uid in user_ids], "password": "dummy_password"})
+        {
+            "userId": user_ids,
+            "name": [f"dummy_{uid}" for uid in user_ids],
+            "password": "dummy_password",
+        },
+    )
 
     movies = pd.read_csv(movies_file, header=0, names=["movieId", "title", "genres"])
 
@@ -133,10 +233,19 @@ def read_ml_25m(data_root):
     ratings_file = os.path.join(dataset_dir, "ratings.csv")
     movies_file = os.path.join(dataset_dir, "movies.csv")
 
-    ratings = pd.read_csv(ratings_file, header=0, names=["userId", "movieId", "rating", "timestamp"])
+    ratings = pd.read_csv(
+        ratings_file,
+        header=0,
+        names=["userId", "movieId", "rating", "timestamp"],
+    )
     user_ids = ratings["userId"].unique()
     users = pd.DataFrame(
-        {"userId": user_ids, "name": [f"dummy_{uid}" for uid in user_ids], "password": "dummy_password"})
+        {
+            "userId": user_ids,
+            "name": [f"dummy_{uid}" for uid in user_ids],
+            "password": "dummy_password",
+        },
+    )
 
     movies = pd.read_csv(movies_file, header=0, names=["movieId", "title", "genres"])
 
@@ -152,11 +261,11 @@ def download(url: str, filename: str, chunk_size=1024):
     resp = requests.get(url, stream=True)
     total = int(resp.headers.get("content-length", 0))
     with open(filename, "wb") as file, tqdm(
-            desc=filename,
-            total=total,
-            unit='iB',
-            unit_scale=True,
-            unit_divisor=1024,
+        desc=filename,
+        total=total,
+        unit="iB",
+        unit_scale=True,
+        unit_divisor=1024,
     ) as bar:
         for data in resp.iter_content(chunk_size=chunk_size):
             size = file.write(data)
@@ -174,14 +283,14 @@ def download_and_extract(dataset_name, data_root):
 
 
 def read_movielens(version, data_root):
-    if version == 'ml-100k':
+    if version == "ml-100k":
         return read_ml_100k(data_root)
-    if version == 'ml-1m':
+    if version == "ml-1m":
         return read_ml_1m(data_root)
-    if version == 'ml-10m':
+    if version == "ml-10m":
         return read_ml_10m(data_root)
-    if version == 'ml-20m':
+    if version == "ml-20m":
         return read_ml_20m(data_root)
-    if version == 'ml-25m':
+    if version == "ml-25m":
         return read_ml_25m(data_root)
-    raise ValueError('Unsupported dataset')
+    raise ValueError("Unsupported dataset")

@@ -10,7 +10,8 @@ class DatabaseRepository:
 
     def create_tables(self):
         cursor = self.conn.cursor()
-        cursor.execute('''
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS interactions (
                 interactionId INTEGER PRIMARY KEY AUTOINCREMENT,
                 userId INTEGER,
@@ -19,17 +20,21 @@ class DatabaseRepository:
                 FOREIGN KEY (userId) REFERENCES users(userId),
                 FOREIGN KEY (movieId) REFERENCES movies(movieId)
             )
-        ''')
+        """,
+        )
 
-        cursor.execute('''
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS users (
                 userId INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT,
                 password TEXT
             )
-        ''')
+        """,
+        )
 
-        cursor.execute('''
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS movies (
                 movieId INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT,
@@ -39,54 +44,55 @@ class DatabaseRepository:
                 imdbId TEXT,
                 tmdbId TEXT
             )
-        ''')
+        """,
+        )
 
         self.conn.commit()
 
-    def get_interactions(self, cols='*'):
+    def get_interactions(self, cols="*"):
         if isinstance(cols, List):
-            cols = ', '.join(cols)
+            cols = ", ".join(cols)
         cursor = self.conn.cursor()
         cursor.execute(f"SELECT {cols} FROM interactions")
         rows = cursor.fetchall()
         return rows
 
-    def get_users(self, cols='*'):
+    def get_users(self, cols="*"):
         if isinstance(cols, List):
-            cols = ', '.join(cols)
+            cols = ", ".join(cols)
         cursor = self.conn.cursor()
         cursor.execute(f"SELECT {cols} FROM users")
         rows = cursor.fetchall()
         return rows
 
-    def get_movies(self, cols='*'):
+    def get_movies(self, cols="*"):
         if isinstance(cols, List):
-            cols = ', '.join(cols)
+            cols = ", ".join(cols)
         cursor = self.conn.cursor()
         cursor.execute(f"SELECT {cols} FROM movies")
         rows = cursor.fetchall()
         return rows
 
-    def get_recent_user_interactions(self, user_id, k=None, minutes=None, cols='*'):
+    def get_recent_user_interactions(self, user_id, k=None, minutes=None, cols="*"):
         if isinstance(cols, list):
-            cols = ', '.join(cols)
+            cols = ", ".join(cols)
 
-        query = f'''
+        query = f"""
             SELECT {cols}
             FROM interactions
             WHERE userId = ?
-        '''
+        """
 
         params = [user_id]
 
         if minutes is not None:
             end_timestamp = datetime.utcnow()
             start_timestamp = end_timestamp - timedelta(minutes=minutes)
-            query += ' AND timestamp BETWEEN ? AND ?'
+            query += " AND timestamp BETWEEN ? AND ?"
             params.extend([start_timestamp, end_timestamp])
 
         if k is not None:
-            query += ' ORDER BY timestamp DESC LIMIT ?'
+            query += " ORDER BY timestamp DESC LIMIT ?"
             params.append(k)
 
         cursor = self.conn.cursor()
@@ -94,53 +100,62 @@ class DatabaseRepository:
         rows = cursor.fetchall()
         return rows
 
-    def get_movies_interacted_by_user(self, user_id, cols='*'):
+    def get_movies_interacted_by_user(self, user_id, cols="*"):
         if isinstance(cols, List):
-            cols = ', '.join(cols)
+            cols = ", ".join(cols)
         cursor = self.conn.cursor()
-        cursor.execute(f'''
+        cursor.execute(
+            f"""
             SELECT {cols}
             FROM movies
             INNER JOIN interactions ON movies.movieId = interactions.movieId
             WHERE interactions.userId = ?
-        ''', (user_id,))
+        """,
+            (user_id,),
+        )
         rows = cursor.fetchall()
         return rows
 
-    def get_users_interacted_with_movie(self, movie_id, cols='*'):
+    def get_users_interacted_with_movie(self, movie_id, cols="*"):
         if isinstance(cols, List):
-            cols = ', '.join(cols)
+            cols = ", ".join(cols)
         cursor = self.conn.cursor()
-        cursor.execute(f'''
+        cursor.execute(
+            f"""
             SELECT {cols}
             FROM users
             INNER JOIN interactions ON users.userId = interactions.userId
             WHERE interactions.movieId = ?
-        ''', (movie_id,))
+        """,
+            (movie_id,),
+        )
         rows = cursor.fetchall()
         return rows
 
-    def get_movie_by_id(self, movie_id, cols='*'):
+    def get_movie_by_id(self, movie_id, cols="*"):
         if isinstance(cols, List):
-            cols = ', '.join(cols)
+            cols = ", ".join(cols)
         cursor = self.conn.cursor()
-        cursor.execute(f'''
+        cursor.execute(
+            f"""
             SELECT {cols}
             FROM movies
             WHERE movieId = ?
-        ''', (movie_id,))
+        """,
+            (movie_id,),
+        )
         row = cursor.fetchone()
         return row
 
     def search_movie_by_title(self, title):
         cursor = self.conn.cursor()
-        cursor.execute("SELECT * FROM movies WHERE title LIKE ?", ('%' + title + '%',))
+        cursor.execute("SELECT * FROM movies WHERE title LIKE ?", ("%" + title + "%",))
         rows = cursor.fetchall()
         return rows
 
     def filter_movies_by_genres(self, genre, k=None):
         cursor = self.conn.cursor()
-        cursor.execute("SELECT * FROM movies WHERE genres LIKE ?", ('%' + genre + '%',))
+        cursor.execute("SELECT * FROM movies WHERE genres LIKE ?", ("%" + genre + "%",))
         if k is not None:
             rows = cursor.fetchmany(k)
         else:
@@ -158,7 +173,10 @@ class DatabaseRepository:
 
     def filter_movies_by_popularity(self, min_popularity, max_popularity, k=None):
         cursor = self.conn.cursor()
-        cursor.execute("SELECT * FROM movies WHERE popularity BETWEEN ? AND ?", (min_popularity, max_popularity))
+        cursor.execute(
+            "SELECT * FROM movies WHERE popularity BETWEEN ? AND ?",
+            (min_popularity, max_popularity),
+        )
         if k is not None:
             rows = cursor.fetchmany(k)
         else:
@@ -189,5 +207,5 @@ class DatabaseRepository:
     @staticmethod
     def dump_from_df(df, table_name, db_file):
         conn = sqlite3.connect(db_file)
-        df.to_sql(table_name, conn, if_exists='replace', index=False)
+        df.to_sql(table_name, conn, if_exists="replace", index=False)
         conn.close()
