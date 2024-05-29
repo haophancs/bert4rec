@@ -3,7 +3,7 @@ import os
 
 from dotenv import load_dotenv
 
-from src.reclib.helpers import get_handler, get_dataloaders
+from src.reclib.utils import get_handler, get_dataloaders
 from src.reclib.models.sequential import BERT4Rec
 
 

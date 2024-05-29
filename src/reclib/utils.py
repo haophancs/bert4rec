@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 from src.reclib.datasets.interaction import InteractionDataset
 from src.reclib.datasets.sequential import SequentialItemsDataset
 from src.reclib.models.sequential import BERT4Rec
-from src.utils.db import DatabaseRepository as DBRepo
+from src.data.db import DatabaseRepository as DBRepo
 
 
 def get_handler(epochs, device, log_dir, checkpoint_dir, checkpoint_prefix):

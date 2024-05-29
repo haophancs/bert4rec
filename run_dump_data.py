@@ -2,8 +2,8 @@ import os
 
 from dotenv import load_dotenv
 
-from src.utils.db import DatabaseRepository as DBRepo
-from src.utils.movielens import read_movielens
+from src.data.db import DatabaseRepository as DBRepo
+from src.data.movielens import read_movielens
 
 if __name__ == '__main__':
     load_dotenv()

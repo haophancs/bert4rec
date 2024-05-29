@@ -12,6 +12,11 @@ python3 -m venv venv
 source venv/bin/activate
 pip3 install -r requirements.txt
 ```
+Prepare environment variables:
+```
+cp .env_org .env
+# now you can edit .env
+```
 
 ### Prepare data
 Open `.env` file and set `MOVIELENS_VERSION=ml-25m`, or `ml-100k`, `ml-1m`, `ml-10m`, `ml-20m` 
@@ -31,10 +36,16 @@ To train the model, run:
 ```
 python3 run_train.py --batch_size 32 --hidden_size 128 --seq_length 120 --epochs 90
 ```
+
 Note:
 - `hidden_size`: token embedding dim
 - `seq_length`: length of interaction sequence
 - `epochs`: number of training epochs
+
+To view Tensorboard while training model, run:
+```
+tensorboard --logdir logs --port 6006
+```
 
 ### Model usage examples 
 ```

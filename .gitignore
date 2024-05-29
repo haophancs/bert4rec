@@ -7,3 +7,5 @@ __pycache__/
 lightning_logs/
 *.rdb
 *.out
+*.zip
+.DS_Store
