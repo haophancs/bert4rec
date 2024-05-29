@@ -12,9 +12,15 @@ The project encompasses training the BERT4Rec model, evaluating its performance,
 
 ### Quick deployment
 Note: you need to install `redis-server`, `python3.9` and `pip3` first
+- Init project
 ```
-bash run_init.sh
-bash run_deploy.sh
+chmod +x ./run_init.sh
+. ./run_init.sh
+```
+- Run deployment
+```
+chmod +x ./run_deploy.sh
+. ./run_deploy.sh
 ```
 
 Or we can run with docker, but **it's extremely time-consuming** because I do not have time to optimize in building image
@@ -100,11 +106,12 @@ WEB_PORT=8000  # Port for the web application
 
 Open the `.env` file and set `MOVIELENS_VERSION` to one of the following options: `ml-25m`, `ml-100k`, `ml-1m`, `ml-10m`, or `ml-20m`.
 
+Then download the original dataset and dump to a SQLite database
 ```
 python3 run_dump_data.py
 ```
 
-Or you can download the dumped sqlite db for `ml-25m`
+Or you can download the dumped SQLite file for `ml-25m` **(BUT ONLY FOR DEPLOYMENT)**
 ```
 wget -O resources/db/ml-25m.db "https://uithcm-my.sharepoint.com/:u:/g/personal/18520216_ms_uit_edu_vn/EYa_K9yjDGdFtMKJtRZpHUwBsRtJSw1V5JedZJA6-Ch42g?e=yUDQaZ&download=1"
 ```
