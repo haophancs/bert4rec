@@ -1,7 +1,7 @@
 # PROJECT: EXPLOITING BERT4REC MODEL TO BUILD THE SEQUENTIAL RECOMMENDATION SYSTEM FOR MOVIELENS DATASETS
-## Install and run at once
+## Install and deploy at once
 ```
-bash RUNME.sh
+bash run_deploy.sh
 ```
 
 ## Detailed steps
