@@ -4,7 +4,7 @@ from typing import List
 import pandas as pd
 from dotenv import load_dotenv
 
-from src.reclib.utils import BERT4RecPredictor
+from src.reclib.predictors import SequentialRecPredictor
 
 load_dotenv()
 db_root = os.getenv("DATABASE_ROOT")
@@ -19,11 +19,12 @@ assert device is not None
 seq_length = int(seq_length)  # type: ignore
 
 print("Loading model with pretrained weights...")
-predictor = BERT4RecPredictor(
+predictor = SequentialRecPredictor(
     os.path.join(
         "resources/checkpoints/",
         "bert4rec_{0}_best.ckpt".format(movielens_version),
     ),
+    model_name="bert4rec",
     data_root=db_root,
     data_name=movielens_version,
     seq_length=seq_length,

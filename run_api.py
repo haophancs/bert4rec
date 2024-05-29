@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 from typing import List, Optional
 
 from celery import Celery
@@ -9,9 +10,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from src.data.db import DatabaseRepository as DBRepo
-from src.reclib.utils import BERT4RecPredictor
-
-# mode = "celery" if "celery" in sys.argv[0] else "fastapi"
+from src.reclib.predictors import SequentialRecPredictor
 
 load_dotenv()
 db_root = os.getenv("DATABASE_ROOT")
@@ -97,9 +96,11 @@ async def index(request: Request):
 
 
 @celery.task
-def get_movie_task(movieId: str):
+def get_movie_task(movieId: int):
     cols = ["movieId", "title", "genres"]
     movie_data = db.get_movie_by_id(movieId, cols)
+    if movie_data is None:
+        return {}
     return {cols[i]: movie_data[i] for i in range(len(cols))}
 
 
@@ -112,15 +113,16 @@ def get_movie(movieId: int):
 
 
 logger.info("Loading predictor...")
-# predictor = None
-# if mode == "celery":
-predictor = BERT4RecPredictor(
-    os.path.join(
-        "resources/checkpoints/",
-        "bert4rec_{0}_best.ckpt".format(movielens_version),
-    ),
-    data_root=db_root,
-    data_name=movielens_version,
-    seq_length=seq_length,
-    device=device,
-)
+predictor = None
+if "celery" not in sys.argv[0]:
+    predictor = SequentialRecPredictor(
+        os.path.join(
+            "resources/checkpoints/",
+            "bert4rec_{0}_best.ckpt".format(movielens_version),
+        ),
+        model_name="bert4rec",
+        data_root=db_root,
+        data_name=movielens_version,
+        seq_length=seq_length,
+        device=device,
+    )

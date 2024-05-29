@@ -1,14 +1,17 @@
 import sqlite3
 from datetime import datetime, timedelta
-from typing import List
+from typing import List, Optional, Tuple, Union
 
 
 class DatabaseRepository:
-    def __init__(self, db_file):
+    def __init__(self, db_file: str):
         self.conn = sqlite3.connect(db_file)
         self.create_tables()
 
-    def create_tables(self):
+    def create_tables(self) -> None:
+        """
+        Create the necessary tables (interactions, users, movies) if they don't exist.
+        """
         cursor = self.conn.cursor()
         cursor.execute(
             """
@@ -49,31 +52,64 @@ class DatabaseRepository:
 
         self.conn.commit()
 
-    def get_interactions(self, cols="*"):
-        if isinstance(cols, List):
+    def get_interactions(self, cols: Union[str, List[str]] = "*") -> List[Tuple]:
+        """
+        Retrieve interactions from the database.
+
+        :param cols: A list of column names or "*" to select all columns
+        :return: A list of tuples representing the interactions
+        """
+        if isinstance(cols, list):
             cols = ", ".join(cols)
         cursor = self.conn.cursor()
         cursor.execute(f"SELECT {cols} FROM interactions")
         rows = cursor.fetchall()
         return rows
 
-    def get_users(self, cols="*"):
-        if isinstance(cols, List):
+    def get_users(self, cols: Union[str, List[str]] = "*") -> List[Tuple]:
+        """
+        Retrieve users from the database.
+
+        :param cols: A list of column names or "*" to select all columns
+        :return: A list of tuples representing the users
+        """
+        if isinstance(cols, list):
             cols = ", ".join(cols)
         cursor = self.conn.cursor()
         cursor.execute(f"SELECT {cols} FROM users")
         rows = cursor.fetchall()
         return rows
 
-    def get_movies(self, cols="*"):
-        if isinstance(cols, List):
+    def get_movies(self, cols: Union[str, List[str]] = "*") -> List[Tuple]:
+        """
+        Retrieve movies from the database.
+
+        :param cols: A list of column names or "*" to select all columns
+        :return: A list of tuples representing the movies
+        """
+        if isinstance(cols, list):
             cols = ", ".join(cols)
         cursor = self.conn.cursor()
         cursor.execute(f"SELECT {cols} FROM movies")
         rows = cursor.fetchall()
         return rows
 
-    def get_recent_user_interactions(self, user_id, k=None, minutes=None, cols="*"):
+    def get_recent_user_interactions(
+        self,
+        user_id: int,
+        k: Optional[int] = None,
+        minutes: Optional[int] = None,
+        cols: Union[str, List[str]] = "*",
+    ) -> List[Tuple]:
+        """
+        Retrieve the recent interactions of a user.
+
+        :param user_id: The user ID
+        :param k: The maximum number of interactions to retrieve, defaults to None
+        :param minutes: The maximum age of interactions in minutes, defaults to None
+        :param cols: A list of column names or "*" to select all columns
+        :return: A list of tuples representing the recent interactions
+        """
         if isinstance(cols, list):
             cols = ", ".join(cols)
 
@@ -89,7 +125,7 @@ class DatabaseRepository:
             end_timestamp = datetime.utcnow()
             start_timestamp = end_timestamp - timedelta(minutes=minutes)
             query += " AND timestamp BETWEEN ? AND ?"
-            params.extend([start_timestamp, end_timestamp])
+            params.extend([start_timestamp, end_timestamp])  # type: ignore
 
         if k is not None:
             query += " ORDER BY timestamp DESC LIMIT ?"
@@ -100,8 +136,19 @@ class DatabaseRepository:
         rows = cursor.fetchall()
         return rows
 
-    def get_movies_interacted_by_user(self, user_id, cols="*"):
-        if isinstance(cols, List):
+    def get_movies_interacted_by_user(
+        self,
+        user_id: int,
+        cols: Union[str, List[str]] = "*",
+    ) -> List[Tuple]:
+        """
+        Retrieve the movies that a user has interacted with.
+
+        :param user_id: The user ID
+        :param cols: A list of column names or "*" to select all columns
+        :return: A list of tuples representing the movies
+        """
+        if isinstance(cols, list):
             cols = ", ".join(cols)
         cursor = self.conn.cursor()
         cursor.execute(
@@ -116,8 +163,19 @@ class DatabaseRepository:
         rows = cursor.fetchall()
         return rows
 
-    def get_users_interacted_with_movie(self, movie_id, cols="*"):
-        if isinstance(cols, List):
+    def get_users_interacted_with_movie(
+        self,
+        movie_id: int,
+        cols: Union[str, List[str]] = "*",
+    ) -> List[Tuple]:
+        """
+        Retrieve the users who have interacted with a movie.
+
+        :param movie_id: The movie ID
+        :param cols: A list of column names or "*" to select all columns
+        :return: A list of tuples representing the users
+        """
+        if isinstance(cols, list):
             cols = ", ".join(cols)
         cursor = self.conn.cursor()
         cursor.execute(
@@ -132,8 +190,19 @@ class DatabaseRepository:
         rows = cursor.fetchall()
         return rows
 
-    def get_movie_by_id(self, movie_id, cols="*"):
-        if isinstance(cols, List):
+    def get_movie_by_id(
+        self,
+        movie_id: int,
+        cols: Union[str, List[str]] = "*",
+    ) -> Optional[Tuple]:
+        """
+        Retrieve a movie by its ID.
+
+        :param movie_id: The movie ID
+        :param cols: A list of column names or "*" to select all columns
+        :return: A tuple representing the movie, or None if not found
+        """
+        if isinstance(cols, list):
             cols = ", ".join(cols)
         cursor = self.conn.cursor()
         cursor.execute(
@@ -147,13 +216,30 @@ class DatabaseRepository:
         row = cursor.fetchone()
         return row
 
-    def search_movie_by_title(self, title):
+    def search_movie_by_title(self, title: str) -> List[Tuple]:
+        """
+        Search for movies by their title.
+
+        :param title: The title to search for (partial matches are allowed)
+        :return: A list of tuples representing the matching movies
+        """
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM movies WHERE title LIKE ?", ("%" + title + "%",))
         rows = cursor.fetchall()
         return rows
 
-    def filter_movies_by_genres(self, genre, k=None):
+    def filter_movies_by_genres(
+        self,
+        genre: str,
+        k: Optional[int] = None,
+    ) -> List[Tuple]:
+        """
+        Filter movies by their genres.
+
+        :param genre: The genre to filter by (partial matches are allowed)
+        :param k: The maximum number of movies to retrieve, defaults to None (no limit)
+        :return: A list of tuples representing the matching movies
+        """
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM movies WHERE genres LIKE ?", ("%" + genre + "%",))
         if k is not None:
@@ -162,7 +248,17 @@ class DatabaseRepository:
             rows = cursor.fetchall()
         return rows
 
-    def filter_movies_by_year(self, year, k=None):
+    def filter_movies_by_year(
+        self,
+        year: int,
+        k: Optional[int] = None,
+    ) -> List[Tuple]:
+        """
+        Filter movies by their release year.
+        :param year: The release year to filter by
+        :param k: The maximum number of movies to retrieve, defaults to None (no limit)
+        :return: A list of tuples representing the matching movies
+        """
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM movies WHERE year = ?", (year,))
         if k is not None:
@@ -171,7 +267,20 @@ class DatabaseRepository:
             rows = cursor.fetchall()
         return rows
 
-    def filter_movies_by_popularity(self, min_popularity, max_popularity, k=None):
+    def filter_movies_by_popularity(
+        self,
+        min_popularity: float,
+        max_popularity: float,
+        k: Optional[int] = None,
+    ) -> List[Tuple]:
+        """
+        Filter movies by their popularity score.
+
+        :param min_popularity: The minimum popularity score
+        :param max_popularity: The maximum popularity score
+        :param k: The maximum number of movies to retrieve, defaults to None (no limit)
+        :return: A list of tuples representing the matching movies
+        """
         cursor = self.conn.cursor()
         cursor.execute(
             "SELECT * FROM movies WHERE popularity BETWEEN ? AND ?",
@@ -183,7 +292,13 @@ class DatabaseRepository:
             rows = cursor.fetchall()
         return rows
 
-    def get_top_popularity_movies(self, k=None):
+    def get_top_popularity_movies(self, k: Optional[int] = None) -> List[Tuple]:
+        """
+        Retrieve the top movies sorted by popularity score.
+
+        :param k: The maximum number of movies to retrieve, defaults to None (no limit)
+        :return: A list of tuples representing the top movies by popularity
+        """
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM movies ORDER BY popularity DESC")
         if k is not None:
@@ -192,7 +307,13 @@ class DatabaseRepository:
             rows = cursor.fetchall()
         return rows
 
-    def get_top_latest_movies(self, k=None):
+    def get_top_latest_movies(self, k: Optional[int] = None) -> List[Tuple]:
+        """
+        Retrieve the latest movies sorted by release year.
+
+        :param k: The maximum number of movies to retrieve, defaults to None (no limit)
+        :return: A list of tuples representing the latest movies
+        """
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM movies ORDER BY year DESC")
         if k is not None:
@@ -201,11 +322,21 @@ class DatabaseRepository:
             rows = cursor.fetchall()
         return rows
 
-    def close_connection(self):
+    def close_connection(self) -> None:
+        """
+        Close the connection to the database.
+        """
         self.conn.close()
 
     @staticmethod
-    def dump_from_df(df, table_name, db_file):
+    def dump_from_df(df, table_name: str, db_file: str) -> None:
+        """
+        Dump data from a pandas DataFrame into a table in the database.
+
+        :param df: The pandas DataFrame containing the data
+        :param table_name: The name of the table to create or replace
+        :param db_file: The file path of the SQLite database
+        """
         conn = sqlite3.connect(db_file)
         df.to_sql(table_name, conn, if_exists="replace", index=False)
         conn.close()

@@ -1,12 +1,20 @@
 import os
 import zipfile
+from typing import Tuple
 
 import pandas as pd
 import requests
 from tqdm import tqdm
 
 
-def read_ml_100k(data_root):
+def read_ml_100k(data_root: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """
+    Read the MovieLens 100K dataset from the specified data root directory.
+
+    :param data_root: The root directory where the dataset files are located
+        or will be downloaded.
+    :return: A tuple containing the ratings, users, and movies DataFrames.
+    """
     dataset_name = "ml-100k"
     dataset_dir = os.path.join(data_root, dataset_name)
     if not os.path.exists(dataset_dir):
@@ -88,7 +96,7 @@ def read_ml_100k(data_root):
     )
 
     genre_mapping = {
-        int(k) + 1: v[0]
+        int(k) + 1: v[0]  # type: ignore
         for k, v in pd.read_table(genre_file, sep="|", header=None)
         .set_index(1)
         .T.to_dict()
@@ -111,7 +119,14 @@ def read_ml_100k(data_root):
     return ratings, users, movies
 
 
-def read_ml_1m(data_root):
+def read_ml_1m(data_root: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """
+    Read the MovieLens 1M dataset from the specified data root directory.
+
+    :param data_root: The root directory where the dataset files are located
+        or will be downloaded.
+    :return: A tuple containing the ratings, users, and movies DataFrames.
+    """
     dataset_name = "ml-1m"
     dataset_dir = os.path.join(data_root, dataset_name)
     if not os.path.exists(dataset_dir):
@@ -152,7 +167,14 @@ def read_ml_1m(data_root):
     return ratings, users, movies
 
 
-def read_ml_10m(data_root):
+def read_ml_10m(data_root: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """
+    Read the MovieLens 10M dataset from the specified data root directory.
+
+    :param data_root: The root directory where the dataset files are located
+        or will be downloaded.
+    :return: A tuple containing the ratings, users, and movies DataFrames.
+    """
     dataset_name = "ml-10m"
     dataset_dir = os.path.join(data_root, dataset_name)
     if not os.path.exists(dataset_dir):
@@ -191,7 +213,14 @@ def read_ml_10m(data_root):
     return ratings, users, movies
 
 
-def read_ml_20m(data_root):
+def read_ml_20m(data_root: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """
+    Read the MovieLens 20M dataset from the specified data root directory.
+
+    :param data_root: The root directory where the dataset files are located
+        or will be downloaded.
+    :return: A tuple containing the ratings, users, and movies DataFrames.
+    """
     dataset_name = "ml-20m"
     dataset_dir = os.path.join(data_root, dataset_name)
     if not os.path.exists(dataset_dir):
@@ -213,7 +242,6 @@ def read_ml_20m(data_root):
             "password": "dummy_password",
         },
     )
-
     movies = pd.read_csv(movies_file, header=0, names=["movieId", "title", "genres"])
 
     links_file = os.path.join(dataset_dir, "links.csv")
@@ -224,7 +252,13 @@ def read_ml_20m(data_root):
     return ratings, users, movies
 
 
-def read_ml_25m(data_root):
+def read_ml_25m(data_root: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """
+    Read the MovieLens 25M dataset from the specified data root directory.
+    :param data_root: The root directory where the dataset files are located
+        or will be downloaded.
+    :return: A tuple containing the ratings, users, and movies DataFrames.
+    """
     dataset_name = "ml-25m"
     dataset_dir = os.path.join(data_root, dataset_name)
     if not os.path.exists(dataset_dir):
@@ -257,7 +291,13 @@ def read_ml_25m(data_root):
     return ratings, users, movies
 
 
-def download(url: str, filename: str, chunk_size=1024):
+def download(url: str, filename: str, chunk_size: int = 1024) -> None:
+    """
+    Download a file from the given URL and save it to the specified filename.
+    :param url: The URL to download the file from.
+    :param filename: The name of the file to save the downloaded content to.
+    :param chunk_size: The chunk size in bytes for streaming the download.
+    """
     resp = requests.get(url, stream=True)
     total = int(resp.headers.get("content-length", 0))
     with open(filename, "wb") as file, tqdm(
@@ -272,7 +312,12 @@ def download(url: str, filename: str, chunk_size=1024):
             bar.update(size)
 
 
-def download_and_extract(dataset_name, data_root):
+def download_and_extract(dataset_name: str, data_root: str) -> None:
+    """
+    Download and extract the specified MovieLens dataset.
+    :param dataset_name: The name of the MovieLens dataset to download and extract.
+    :param data_root: The root directory where the dataset files will be saved.
+    """
     print(f"Downloading and extracting {dataset_name} dataset...")
     download_url = f"http://files.grouplens.org/datasets/movielens/{dataset_name}.zip"
     download(download_url, f"{dataset_name}.zip")
@@ -282,7 +327,20 @@ def download_and_extract(dataset_name, data_root):
     print("Download and extraction complete.")
 
 
-def read_movielens(version, data_root):
+def read_movielens(version: str, data_root: str) -> Tuple[
+    pd.DataFrame,
+    pd.DataFrame,
+    pd.DataFrame,
+]:
+    """
+    Read the specified version of the MovieLens dataset from the given data directory.
+    :param version: The version of the MovieLens dataset to read
+        (e.g., "ml-100k", "ml-1m", "ml-10m", "ml-20m", "ml-25m").
+    :param data_root: The root directory where the dataset files are located
+        or will be downloaded.
+    :return: A tuple containing the ratings, users, and movies DataFrames.
+    :raise ValueError: If an unsupported dataset version is provided.
+    """
     if version == "ml-100k":
         return read_ml_100k(data_root)
     if version == "ml-1m":
